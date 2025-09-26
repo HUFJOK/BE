@@ -1,11 +1,10 @@
-package com.likelion.todolist.controller;
+package com.likelion.hufjok.controller;
 
-import com.likelion.todolist.service.NotFoundException;
+import com.likelion.hufjok.service.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.Map;
 

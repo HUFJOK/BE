@@ -1,4 +1,4 @@
-package com.likelion.todolist.domain;
+package com.likelion.hufjok.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -6,7 +6,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "todo")
+@Table(name = "")
 @Getter @Setter
 @NoArgsConstructor @AllArgsConstructor @Builder
 public class Todo {

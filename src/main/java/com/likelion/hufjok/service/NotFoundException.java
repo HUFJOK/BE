@@ -1,4 +1,4 @@
-package com.likelion.todolist.service;
+package com.likelion.hufjok.service;
 
 public class NotFoundException extends RuntimeException {
     public NotFoundException(String target, Object id) {

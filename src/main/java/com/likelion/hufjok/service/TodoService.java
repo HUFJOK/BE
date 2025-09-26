@@ -1,8 +1,8 @@
-package com.likelion.todolist.service;
+package com.likelion.hufjok.service;
 
-import com.likelion.todolist.DTO.*;
-import com.likelion.todolist.domain.Todo;
-import com.likelion.todolist.repository.TodoRepository;
+import com.likelion.hufjok.DTO.*;
+import com.likelion.hufjok.domain.Todo;
+import com.likelion.hufjok.repository.TodoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

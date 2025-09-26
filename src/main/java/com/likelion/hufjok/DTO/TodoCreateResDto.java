@@ -1,8 +1,8 @@
-package com.likelion.todolist.DTO;
+package com.likelion.hufjok.DTO;
 
 import java.time.LocalDateTime;
 
-public record TodoDoneResDto(
+public record TodoCreateResDto(
         Long id,
         String title,
         boolean completed,

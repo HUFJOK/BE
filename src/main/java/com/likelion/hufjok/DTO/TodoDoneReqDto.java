@@ -1,4 +1,4 @@
-package com.likelion.todolist.DTO;
+package com.likelion.hufjok.DTO;
 
 import jakarta.validation.constraints.NotNull;
 

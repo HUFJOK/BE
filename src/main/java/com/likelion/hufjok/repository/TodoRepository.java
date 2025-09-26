@@ -1,6 +1,6 @@
-package com.likelion.todolist.repository;
+package com.likelion.hufjok.repository;
 
-import com.likelion.todolist.domain.Todo;
+import com.likelion.hufjok.domain.Todo;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

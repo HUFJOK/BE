@@ -1,4 +1,4 @@
-package com.likelion.todolist;
+package com.likelion.hufjok;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

@@ -1,7 +1,7 @@
-package com.likelion.todolist.controller;
+package com.likelion.hufjok.controller;
 
-import com.likelion.todolist.DTO.*;
-import com.likelion.todolist.service.TodoService;
+import com.likelion.hufjok.DTO.*;
+import com.likelion.hufjok.service.TodoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
