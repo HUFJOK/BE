@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -19,26 +20,27 @@ public class Material {
     @Column(nullable = false)
     private String title;
 
-    // 자료 설명
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    private String professor;
+    // --- 이 부분이 수정되었습니다 ---
+    @Column(name = "professor_name") // DB 컬럼명은 snake_case로 명시
+    private String professorName;     // 자바 필드명은 camelCase로 변경
 
+    @Column(nullable = false)
     private String courseName;
 
+    @Column(nullable = false)
     private int year;
 
+    @Column(nullable = false)
     private int semester;
 
     private String filePath;
 
-    // 업로드 날짜
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false) // updatable = false 추가
     private LocalDateTime createdAt;
 
-    // 수정 날짜
-    @Column(nullable = true)
     private LocalDateTime updatedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -48,5 +50,18 @@ public class Material {
 
     @OneToMany(mappedBy = "material", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
-    private List<Review> reviews;
+    @Builder.Default // --- 이 부분이 추가되었습니다 ---
+    private List<Review> reviews = new ArrayList<>();
+
+    // --- 아래 메소드들이 추가되었습니다 ---
+    @PrePersist
+    public void prePersist() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }
