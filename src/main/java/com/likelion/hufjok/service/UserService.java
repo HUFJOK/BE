@@ -53,10 +53,6 @@ public class UserService {
         User user = userRepository.findByEmail(email.toLowerCase())
                 .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다.", email));
 
-        System.out.println("[PUT] nickname=" + req.getNickname()
-                + ", major=" + req.getMajor()
-                + ", doubleMajor=" + req.getDoubleMajor()
-                + ", minor=" + req.getMinor());
 
         if (req.getNickname() != null && !req.getNickname().isBlank()) {
             user.setNickname(req.getNickname());
