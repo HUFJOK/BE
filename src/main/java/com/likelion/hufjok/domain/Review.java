@@ -36,4 +36,9 @@ public class Review {
     @JoinColumn(name = "material_id", nullable = false)
     @JsonIgnore
     private Material material;
+
+    public void updateReview(int rating, String comment) {
+        this.rating = rating;
+        this.comment = comment;
+    }
 }
