@@ -1,8 +1,11 @@
 package com.likelion.hufjok.service;
 
-import com.likelion.hufjok.DTO.*; // DTO들을 모두 사용하기 위해 import
+import com.likelion.hufjok.DTO.*;
 import com.likelion.hufjok.domain.Material;
+import com.likelion.hufjok.domain.User;
 import com.likelion.hufjok.repository.MaterialRepository;
+import com.likelion.hufjok.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,16 +18,28 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class MaterialService {
 
     private final MaterialRepository materialRepository;
-    // UserRepository 등 다른 Repository도 필요에 따라 주입받습니다.
+    private final UserRepository userRepository;
 
-    public MaterialService(MaterialRepository materialRepository) {
-        this.materialRepository = materialRepository;
+    @Transactional
+    public MaterialResponseDto createMaterial(Long userId, MaterialCreateRequestDto requestDto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User", userId));
+
+        Material material = Material.builder()
+                .title(requestDto.title())
+                .description(requestDto.description())
+                // TODO: requestDto에서 나머지 필드(교수명, 강의명 등)도 마저 설정해야 합니다.
+                .user(user)
+                .build();
+
+        Material savedMaterial = materialRepository.save(material);
+        return new MaterialResponseDto(savedMaterial);
     }
 
-    // 기존 자료 조회 메소드 (수정 없음)
     public MaterialListResponseDto getMaterials(String keyword, Integer year, Integer semester, String sortBy, int page) {
         Sort sort = sortBy.equalsIgnoreCase("rating")
                 ? Sort.by(Sort.Direction.DESC, "avgRating")
@@ -32,6 +47,7 @@ public class MaterialService {
         Pageable pageable = PageRequest.of(page - 1, 10, sort);
         Page<Material> materialsPage;
         if (keyword != null || year != null || semester != null) {
+            // 참고: findFilteredMaterials 메소드는 Repository에 직접 구현(JPQL 또는 QueryDSL)해야 합니다.
             materialsPage = materialRepository.findFilteredMaterials(keyword, year, semester, pageable);
         } else {
             materialsPage = materialRepository.findAll(pageable);
@@ -47,7 +63,6 @@ public class MaterialService {
         return new MaterialListResponseDto(pageInfo, materialDtos);
     }
 
-    // 기존 자료 수정 메소드 (수정 없음)
     @Transactional
     public MaterialUpdateResponseDto updateMaterial(Long materialId, Long userId, MaterialUpdateRequestDto request) {
         Material material = materialRepository.findById(materialId)
@@ -60,24 +75,14 @@ public class MaterialService {
         return MaterialUpdateResponseDto.from(material);
     }
 
-    // --- 이 부분이 새로 추가되었습니다 ---
-    @Transactional // 데이터를 변경하는 작업이므로 @Transactional을 붙여줍니다.
+    @Transactional
     public void deleteMaterial(Long materialId, Long userId) {
-        // 1. DB에서 삭제할 자료를 찾아옵니다.
-        // 자료가 없으면 NotFoundException 발생 (404 Not Found 응답)
         Material material = materialRepository.findById(materialId)
                 .orElseThrow(() -> new NotFoundException("Material", materialId));
 
-        // 2. 권한 확인 (매우 중요!)
-        // 자료를 올린 사람(material.getUser().getId())과
-        // 현재 요청한 사람(userId)이 동일한지 확인합니다.
         if (!material.getUser().getId().equals(userId)) {
-            // 동일하지 않으면 권한 없음 예외 발생 (403 Forbidden 응답)
             throw new RuntimeException("삭제할 권한이 없습니다.");
         }
-
-        // 3. 권한이 있으면, Repository를 통해 해당 자료를 DB에서 삭제합니다.
         materialRepository.delete(material);
     }
-
 }

@@ -1,15 +1,13 @@
 package com.likelion.hufjok.controller;
 
-import com.likelion.hufjok.DTO.MaterialUpdateRequestDto;
-import com.likelion.hufjok.DTO.MaterialUpdateResponseDto;
-import com.likelion.hufjok.DTO.ReviewCreateRequestDto;
-import com.likelion.hufjok.DTO.ReviewCreateResponseDto;
+import com.likelion.hufjok.DTO.*;
 import com.likelion.hufjok.service.MaterialService;
 import com.likelion.hufjok.service.ReviewService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.likelion.hufjok.DTO.MaterialCreateRequestDto;
 
 @RestController
 @RequestMapping("/api/v1/materials")
@@ -64,4 +62,14 @@ public class MaterialController {
         materialService.deleteMaterial(materialId, userId);
         return ResponseEntity.noContent().build();
     }
-} // <-- 여기가 클래스의 진짜 끝입니다.
+
+    @PostMapping
+    public ResponseEntity<MaterialResponseDto> createMaterial(
+            // @AuthenticationPrincipal UserDetailsImpl userDetails, // 👈 최종적으로는 실제 사용자 정보를 사용
+            @Valid @RequestBody MaterialCreateRequestDto request // 👈 2. 올바른 DTO로 변경
+    ) {
+        Long userId = 1L; // 임시 사용자 ID
+        MaterialResponseDto response = materialService.createMaterial(userId, request); // 👈 3. 메소드 이름 수정
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+}
