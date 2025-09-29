@@ -31,7 +31,7 @@ public class ReviewService {
         this.materialRepository = materialRepository;
     }
 
-    public ReviewCreateResponseDto createReview(Long materialId, Long userId, ReviewCreateRequestDto request) {.
+    public ReviewCreateResponseDto createReview(Long materialId, Long userId, ReviewCreateRequestDto request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         Material material = materialRepository.findById(materialId)
