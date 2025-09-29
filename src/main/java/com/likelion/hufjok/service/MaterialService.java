@@ -79,4 +79,5 @@ public class MaterialService {
         // 3. 권한이 있으면, Repository를 통해 해당 자료를 DB에서 삭제합니다.
         materialRepository.delete(material);
     }
+
 }
