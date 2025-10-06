@@ -1,9 +1,13 @@
 package com.likelion.hufjok.service;
 
+import com.likelion.hufjok.DTO.OnboardingRequestDto;
+import com.likelion.hufjok.DTO.OnboardingResponseDto;
 import com.likelion.hufjok.DTO.UserUpdateRequestDto;
 import com.likelion.hufjok.domain.User;
 import com.likelion.hufjok.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.RequestEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,7 +46,7 @@ public class UserService {
                 .providerId(providerId)
                 .major("미입력")
                 .nickname(nickname)  // ★ NOT NULL 컬럼 채움
-                .points(0)           // ★ NOT NULL이면 기본값
+                .points(200)           // ★ NOT NULL이면 기본값
                 .build();
 
         return userRepository.save(u);
@@ -65,6 +69,21 @@ public class UserService {
         if (req.getMinor() != null)      user.setMinor(req.getMinor());
 
         return userRepository.save(user);
+    }
+
+    // 본전공 입력
+    @Transactional
+    public OnboardingResponseDto createMajor(String email, OnboardingRequestDto dto) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다.", email));
+
+        if (dto.getMajor() != null && !dto.getMajor().isBlank()) {
+            user.setMajor(dto.getMajor());
+        }
+
+        User savedUser = userRepository.save(user);
+
+        return OnboardingResponseDto.from(savedUser);
     }
 
     // 이중 삭제
