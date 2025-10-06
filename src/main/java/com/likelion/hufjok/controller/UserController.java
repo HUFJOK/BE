@@ -26,10 +26,10 @@ public class UserController {
 
     private final UserService userService;
 
-    @PostMapping("/onboarding/major")
+    @PostMapping("/onboarding")
     @Operation(
-            summary = "본전공 입력",
-            description = "온보딩에서 본전공을 입력합니다." ,
+            summary = "전공 정보 입력",
+            description = "온보딩에서 전공/이중전공/부전공을 입력합니다." ,
             security = @SecurityRequirement(name = "Cookie Authentication")
     )
     public ResponseEntity<OnboardingResponseDto> getMajor(@AuthenticationPrincipal OAuth2User oAuth2User,
