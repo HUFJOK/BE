@@ -3,12 +3,14 @@ package com.likelion.hufjok.service;
 import com.likelion.hufjok.DTO.*; // DTO들을 모두 사용하기 위해 import
 import com.likelion.hufjok.domain.Material;
 import com.likelion.hufjok.repository.MaterialRepository;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,13 +20,11 @@ import java.util.stream.Collectors;
 public class MaterialService {
 
     private final MaterialRepository materialRepository;
-    // UserRepository 등 다른 Repository도 필요에 따라 주입받습니다.
 
     public MaterialService(MaterialRepository materialRepository) {
         this.materialRepository = materialRepository;
     }
 
-    // 기존 자료 조회 메소드 (수정 없음)
     public MaterialListResponseDto getMaterials(String keyword, Integer year, Integer semester, String sortBy, int page) {
         Sort sort = sortBy.equalsIgnoreCase("rating")
                 ? Sort.by(Sort.Direction.DESC, "avgRating")
@@ -47,7 +47,6 @@ public class MaterialService {
         return new MaterialListResponseDto(pageInfo, materialDtos);
     }
 
-    // 기존 자료 수정 메소드 (수정 없음)
     @Transactional
     public MaterialUpdateResponseDto updateMaterial(Long materialId, Long userId, MaterialUpdateRequestDto request) {
         Material material = materialRepository.findById(materialId)
@@ -60,24 +59,40 @@ public class MaterialService {
         return MaterialUpdateResponseDto.from(material);
     }
 
-    // --- 이 부분이 새로 추가되었습니다 ---
-    @Transactional // 데이터를 변경하는 작업이므로 @Transactional을 붙여줍니다.
+    @Transactional
     public void deleteMaterial(Long materialId, Long userId) {
-        // 1. DB에서 삭제할 자료를 찾아옵니다.
-        // 자료가 없으면 NotFoundException 발생 (404 Not Found 응답)
+
         Material material = materialRepository.findById(materialId)
                 .orElseThrow(() -> new NotFoundException("Material", materialId));
 
-        // 2. 권한 확인 (매우 중요!)
-        // 자료를 올린 사람(material.getUser().getId())과
-        // 현재 요청한 사람(userId)이 동일한지 확인합니다.
         if (!material.getUser().getId().equals(userId)) {
-            // 동일하지 않으면 권한 없음 예외 발생 (403 Forbidden 응답)
+
             throw new RuntimeException("삭제할 권한이 없습니다.");
         }
 
-        // 3. 권한이 있으면, Repository를 통해 해당 자료를 DB에서 삭제합니다.
         materialRepository.delete(material);
     }
 
+    @Transactional
+    public MaterialCreateResponseDto createMaterial(Long userId,
+                                                    @Valid MaterialCreateRequestDto metadata,
+                                                    MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("file.required");
+        }
+
+        String filePath = "/uploads/" + file.getOriginalFilename();
+
+        Material material = Material.builder()
+                .title(metadata.getTitle())
+                .description(metadata.getDescription())
+                .professorName(metadata.getProfessorName())
+                .courseName(metadata.getCourseName())
+                .year(metadata.getYear())
+                .semester(metadata.getSemester())
+                .filePath(filePath)
+                .build();
+        Material saved = materialRepository.save(material);
+        return MaterialCreateResponseDto.fromEntity(saved);
+    }
 }

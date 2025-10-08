@@ -9,7 +9,6 @@ import org.springframework.data.repository.query.Param;
 
 public interface MaterialRepository extends JpaRepository<Material, Long> {
 
-    // 검색/필터 로직을 위한 동적 쿼리 예시
     @Query("SELECT m FROM Material m " +
             "WHERE (:keyword IS NULL OR m.title LIKE %:keyword% OR m.courseName LIKE %:keyword% OR m.professorName LIKE %:keyword%) " +
             "AND (:year IS NULL OR m.year = :year) " +
@@ -17,10 +16,8 @@ public interface MaterialRepository extends JpaRepository<Material, Long> {
     Page<Material> findFilteredMaterials(
             @Param("keyword") String keyword,
             @Param("year") Integer year,
-            @Param("semester") Integer semester,
-            Pageable pageable // 여기에 정렬(sortBy)과 페이징(page) 정보가 모두 담깁니다.
+            @Param("semester") int semester,
+            Pageable pageable
     );
 
-    // 개인화 로직은 ORDER BY CASE 구문을 사용하는 등 더 복잡한 쿼리가 필요합니다.
-    // 예: @Query("SELECT m FROM Material m ORDER BY CASE WHEN m.courseName = :major THEN 1 ...")
 }
