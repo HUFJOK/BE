@@ -15,11 +15,12 @@ import java.io.IOException;
 public class CustomOAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private static final String ALLOWED_DOMAIN = "hufs.ac.kr";
-    private static final String TARGET_AFTER_LOGIN = "/swagger-ui/index.html";
+    private static final String TARGET_AFTER_LOGIN = "/";
+
 
     public CustomOAuth2LoginSuccessHandler() {
-        setAlwaysUseDefaultTargetUrl(true);
-        setDefaultTargetUrl(TARGET_AFTER_LOGIN);
+        setAlwaysUseDefaultTargetUrl(false);
+        setDefaultTargetUrl("/");
     }
 
     @Override
@@ -31,9 +32,8 @@ public class CustomOAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSucc
         String email = oAuth2User.getAttribute("email");
 
         if (email != null && email.endsWith("@" + ALLOWED_DOMAIN)) {
-            // 같은 오리진의 스웨거로 확실히 리다이렉트
-            clearAuthenticationAttributes(request); // 남은 속성 정리
-            getRedirectStrategy().sendRedirect(request, response, TARGET_AFTER_LOGIN);
+            clearAuthenticationAttributes(request);
+            super.onAuthenticationSuccess(request, response, authentication);
         } else {
             // 허용 도메인 아니면 세션 제거 후 로그인 페이지로
             new SecurityContextLogoutHandler().logout(request, response, authentication);

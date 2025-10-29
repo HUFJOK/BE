@@ -87,6 +87,8 @@ public class UserController {
         return ResponseEntity.ok(UserResponseDto.fromEntity(updated));
     }
 
+
+
     @DeleteMapping("mypage/me/doubleMajor")
     @Operation(summary = "이중전공 삭제", security = @SecurityRequirement(name = "Cookie Authentication"))
     public ResponseEntity<UserResponseDto> deleteDoubleMajor(@AuthenticationPrincipal OAuth2User principal) {
