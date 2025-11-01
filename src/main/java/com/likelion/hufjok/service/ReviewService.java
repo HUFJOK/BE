@@ -38,8 +38,8 @@ public class ReviewService {
                 .orElseThrow(() -> new IllegalArgumentException("Material not found"));
 
         Review review = Review.builder()
-                .rating(request.rating())
-                .comment(request.comment())
+                .rating(request.getRating())
+                .comment(request.getComment())
                 .user(user)
                 .material(material)
                 .build();
@@ -63,7 +63,6 @@ public class ReviewService {
         if (!review.getUser().getId().equals(currentUserId)) {
             throw new AccessDeniedException("후기를 수정할 권한이 없습니다.");
         }
-        review.updateReview(dto.rating(), dto.comment());
     }
 
     @Transactional
@@ -76,6 +75,4 @@ public class ReviewService {
         }
         reviewRepository.delete(review);
     }
-
-
 }

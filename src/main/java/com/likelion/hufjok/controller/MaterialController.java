@@ -35,16 +35,6 @@ public class MaterialController {
         return ResponseEntity.ok(result);
     }
 
-    @PostMapping("/{materialId}/review")
-    public ResponseEntity<ReviewCreateResponseDto> createReview(
-            @PathVariable Long materialId,
-            @Valid @RequestBody ReviewCreateRequestDto request
-    ) {
-        Long userId = 1L; // 임시 사용자 ID
-        ReviewCreateResponseDto response = reviewService.createReview(materialId, userId, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
     @PutMapping("/{materialId}")
     public ResponseEntity<MaterialUpdateResponseDto> updateMaterial(
             @PathVariable Long materialId,

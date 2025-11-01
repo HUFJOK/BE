@@ -1,10 +1,12 @@
 package com.likelion.hufjok.controller;
 
+import com.likelion.hufjok.DTO.ReviewCreateRequestDto;
+import com.likelion.hufjok.DTO.ReviewCreateResponseDto;
 import com.likelion.hufjok.DTO.ReviewGetResponseDto;
-import com.likelion.hufjok.DTO.ReviewUpdateRequestDto;
 import com.likelion.hufjok.DTO.ReviewUpdateRequestDto;
 import com.likelion.hufjok.security.UserDetailsImpl;
 import com.likelion.hufjok.service.ReviewService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -42,5 +44,21 @@ public class ReviewController {
 
         reviewService.delete(reviewId, userDetails.getUser().getId());
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/reviews")
+    public ResponseEntity<ReviewCreateResponseDto> createReview(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @RequestBody @Valid ReviewCreateRequestDto requestDto) {
+
+        Long userId = userDetails.getUser().getId();
+        Long materialId = requestDto.getMaterialId();
+
+        ReviewCreateResponseDto responseDto = reviewService.createReview(
+                materialId,
+                userId,
+                requestDto
+        );
+        return ResponseEntity.ok(responseDto);
     }
 }
