@@ -5,9 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Entity
 @Table(name = "material")
@@ -37,12 +35,15 @@ public class Material {
     @Column(nullable = false)
     private int semester;
 
-    private String filePath;
-
     @Column(nullable = false, updatable = false) // updatable = false 추가
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "material", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    @Builder.Default
+    private Set<Attachment> attachments = new HashSet<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -51,10 +52,9 @@ public class Material {
 
     @OneToMany(mappedBy = "material", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
-    @Builder.Default // --- 이 부분이 추가되었습니다 ---
+    @Builder.Default
     private List<Review> reviews = new ArrayList<>();
 
-    // --- 아래 메소드들이 추가되었습니다 ---
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
