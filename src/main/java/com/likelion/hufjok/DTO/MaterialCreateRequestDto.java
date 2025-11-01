@@ -32,9 +32,7 @@ public class MaterialCreateRequestDto {
     @NotBlank(message = "학기를 입력해주세요.")
     private int semester;
 
-    private MultipartFile attachment;
-
-    public Material toEntity(User user, String filePath) {
+    public Material toEntity(User user) {
         return Material.builder()
                 .title(this.title)
                 .description(this.description)
@@ -42,7 +40,6 @@ public class MaterialCreateRequestDto {
                 .courseName(this.courseName)
                 .year(this.year)
                 .semester(this.semester)
-                .filePath(filePath) // 파일 경로 주입
                 .user(user)
                 .build();
     }
