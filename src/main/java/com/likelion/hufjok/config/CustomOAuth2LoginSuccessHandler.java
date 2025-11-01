@@ -1,5 +1,6 @@
 package com.likelion.hufjok.config;
 
+import com.likelion.hufjok.service.UserService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,9 +17,11 @@ public class CustomOAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSucc
 
     private static final String ALLOWED_DOMAIN = "hufs.ac.kr";
     private static final String TARGET_AFTER_LOGIN = "/";
+    private final UserService userService;
 
 
-    public CustomOAuth2LoginSuccessHandler() {
+    public CustomOAuth2LoginSuccessHandler(UserService userService) {
+        this.userService = userService;
         setAlwaysUseDefaultTargetUrl(false);
         setDefaultTargetUrl("/");
     }
@@ -30,8 +33,11 @@ public class CustomOAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSucc
 
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         String email = oAuth2User.getAttribute("email");
+        String providerId = oAuth2User.getName();
 
         if (email != null && email.endsWith("@" + ALLOWED_DOMAIN)) {
+            userService.findByEmail(email)
+                            .orElseGet(() -> userService.saveFirstLogin(email, providerId));
             clearAuthenticationAttributes(request);
             super.onAuthenticationSuccess(request, response, authentication);
         } else {
