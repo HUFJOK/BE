@@ -11,8 +11,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
+import java.io.IOException;
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/materials")
@@ -27,6 +30,7 @@ public class MaterialController {
     }
 
     @GetMapping
+    @Operation(summary = "자료 조회")
     public ResponseEntity<?> getMaterials(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Integer year,
@@ -38,37 +42,39 @@ public class MaterialController {
         return ResponseEntity.ok(result);
     }
 
-    @PutMapping("/{materialId}")
+    @PutMapping
+    @Operation(summary = "자료 수정")
     public ResponseEntity<MaterialUpdateResponseDto> updateMaterial(
             @PathVariable Long materialId,
-            @Valid @RequestBody MaterialUpdateRequestDto request
+            @Valid @RequestBody MaterialUpdateRequestDto request,
+            @AuthenticationPrincipal Long userId
     ) {
-        Long userId = 1L; // 임시 사용자 ID
         MaterialUpdateResponseDto response = materialService.updateMaterial(materialId, userId, request);
         return ResponseEntity.ok(response);
     }
 
-    // --- 이 메소드를 클래스 안으로 옮겼습니다 ---
-    @DeleteMapping("/{materialId}")
+    @DeleteMapping
+    @Operation(summary = "자료 삭제")
     public ResponseEntity<Void> deleteMaterial(
-            @PathVariable Long materialId
+            @PathVariable Long materialId,
+            @AuthenticationPrincipal Long userId
     ) {
-        Long userId = 1L; // 임시 사용자 ID
         materialService.deleteMaterial(materialId, userId);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "자료 정보 입력")
+    @Operation(summary = "자료 정보 및 파일 업로드")
     public ResponseEntity<MaterialCreateResponseDto> createMaterialMultipart(
             @RequestPart("metadata") @Valid MaterialCreateRequestDto metadata,
-            @RequestPart("file") MultipartFile file
-    ) {
-        Long userId = 1L;
-        MaterialCreateResponseDto response = materialService.createMaterial(userId, metadata, file);
+            @RequestPart("files") List<MultipartFile> files,
+            @AuthenticationPrincipal Long userId
+    ) throws IOException {
+
+        MaterialCreateResponseDto response = materialService.createMaterial(userId, metadata, files);
+
         return ResponseEntity
                 .created(URI.create("/api/v1/materials" + response.getMaterialId()))
                 .body(response);
     }
-
 }
