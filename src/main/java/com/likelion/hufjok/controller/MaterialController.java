@@ -42,7 +42,7 @@ public class MaterialController {
         return ResponseEntity.ok(result);
     }
 
-    @PutMapping
+    @PutMapping("/{materialId}") // <-- 수정된 부분
     @Operation(summary = "자료 수정")
     public ResponseEntity<MaterialUpdateResponseDto> updateMaterial(
             @PathVariable Long materialId,
@@ -53,7 +53,7 @@ public class MaterialController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping
+    @DeleteMapping("/{materialId}") // <-- 수정된 부분
     @Operation(summary = "자료 삭제")
     public ResponseEntity<Void> deleteMaterial(
             @PathVariable Long materialId,
