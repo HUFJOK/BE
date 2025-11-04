@@ -20,4 +20,6 @@ public interface MaterialRepository extends JpaRepository<Material, Long> {
             Pageable pageable
     );
 
+    Page<Material> findByUserId(Long userId, Pageable pageable);
+
 }
