@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @RestController
@@ -98,6 +102,38 @@ public class MaterialController {
         return ResponseEntity
                 .created(URI.create("/api/v1/materials/" + response.getMaterialId()))
                 .body(response);
+    }
+
+    @GetMapping("/{materialId}/download")
+    @Operation(
+            summary = "자료 파일 다운로드",
+            description = "자료를 다운로드합니다. 본인이 업로드한 자료가 아닌 경우 200 포인트가 차감됩니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "다운로드 성공"),
+            @ApiResponse(responseCode = "400", description = "포인트 부족 (200P 필요)"),
+            @ApiResponse(responseCode = "404", description = "파일을 찾을 수 없음")
+    })
+    public ResponseEntity<Resource> downloadMaterial(
+            @Parameter(description = "자료 ID", required = true)
+            @PathVariable Long materialId,
+
+            @Parameter(description = "첨부파일 ID", required = true)
+            @PathVariable Long attachmentId,
+
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal Long userId
+    ) throws IOException {
+        AttachmentDownloadDto fileDownload = materialService.downloadMaterial(materialId, attachmentId, userId);
+
+        String encodedFileName = URLEncoder.encode(fileDownload.getOriginalFileName(), StandardCharsets.UTF_8)
+                .replaceAll("\\+", "%20");
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + encodedFileName + "\"")
+                .body(fileDownload.getResource());
     }
 
     @GetMapping("/me/materials")
