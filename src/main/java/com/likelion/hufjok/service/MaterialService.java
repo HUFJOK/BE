@@ -11,6 +11,8 @@ import com.likelion.hufjok.repository.UserRepository;
 import com.likelion.hufjok.service.PointService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -170,4 +175,45 @@ public class MaterialService {
         // 5. 최종 응답 DTO로 반환
         return new MaterialListResponseDto(pageInfo, materialDtos);
     }
+
+    @Transactional
+    public AttachmentDownloadDto downloadMaterial(Long materialId, Long attachmentId, Long userId) throws IOException {
+
+        Material material = materialRepository.findById(materialId)
+                .orElseThrow(() -> new NotFoundException("Material", materialId));
+
+        Attachment attachment = attachmentRepository.findById(attachmentId)
+                .orElseThrow(() -> new NotFoundException("Attachment", attachmentId));
+
+        if (!attachment.getMaterial().getId().equals(materialId)) {
+            throw new IllegalArgumentException("해당 자료에 속한 파일이 아닙니다.");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User", userId));
+
+        if (!material.getUser().getId().equals(userId)) {
+            pointService.updatePoints(
+                    user.getEmail(),
+                    200,
+                    "자료 다운로드: " + material.getTitle(),
+                    PointHistory.PointType.USE
+            );
+        }
+
+        Path filePath = Paths.get(attachment.getStoredFilePath());
+        Resource resource = new UrlResource(filePath.toUri());
+
+        if (!resource.exists() || !resource.isReadable()) {
+            throw new IOException("파일을 읽을 수 없습니다: " + attachment.getOriginalFileName());
+        }
+
+        return AttachmentDownloadDto.builder()
+                .resource(resource)
+                .originalFileName(attachment.getOriginalFileName())
+                .fileSize(Files.size(filePath))
+                .contentType(Files.probeContentType(filePath))
+                .build();
+    }
+
 }
