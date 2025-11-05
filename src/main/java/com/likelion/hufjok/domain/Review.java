@@ -17,23 +17,21 @@ public class Review {
 
     private int rating;
 
-    // 후기 내용
     private String comment;
 
-    // 변동 발생 시간
-    @Column(nullable = true)
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = true)
     private LocalDateTime updatedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "material_id", nullable = false)
     @JsonIgnore
     private Material material;
+
 }

@@ -12,11 +12,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class MaterialService {
@@ -41,9 +47,11 @@ public class MaterialService {
     }
 
     public MaterialListResponseDto getMaterials(String keyword, Integer year, Integer semester, String sortBy, int page) {
-        Sort sort = sortBy.equalsIgnoreCase("rating")
-                ? Sort.by(Sort.Direction.DESC, "avgRating")
-                : Sort.by(Sort.Direction.DESC, "createdAt");
+// 임시 수정안
+        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+// if (sortBy.equalsIgnoreCase("rating")) {
+//     sort = Sort.by(Sort.Direction.DESC, "avgRating");
+// }
         Pageable pageable = PageRequest.of(page - 1, 10, sort);
         Page<Material> materialsPage;
         if (keyword != null || year != null || semester != null) {

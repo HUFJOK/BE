@@ -1,10 +1,12 @@
 package com.likelion.hufjok.controller;
 
+import com.likelion.hufjok.DTO.ReviewCreateRequestDto;
+import com.likelion.hufjok.DTO.ReviewCreateResponseDto;
 import com.likelion.hufjok.DTO.ReviewGetResponseDto;
-import com.likelion.hufjok.DTO.ReviewUpdateRequestDto;
 import com.likelion.hufjok.DTO.ReviewUpdateRequestDto;
 import com.likelion.hufjok.security.UserDetailsImpl;
 import com.likelion.hufjok.service.ReviewService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,14 +21,12 @@ public class ReviewController {
 
     private final ReviewService reviewService;
 
-    // 1. 자료 후기 조회 API
     @GetMapping("/reviews/{reviewId}")
     public ResponseEntity<ReviewGetResponseDto> getReview(@PathVariable Long reviewId) {
         ReviewGetResponseDto responseDto = reviewService.findById(reviewId);
         return ResponseEntity.ok(responseDto);
     }
 
-    // 2. 자료 후기 수정 API
     @PutMapping("/reviews/{reviewId}")
     public ResponseEntity<Void> updateReview(
             @PathVariable Long reviewId,
@@ -37,7 +37,6 @@ public class ReviewController {
         return ResponseEntity.ok().build();
     }
 
-    // 3. 자료 후기 삭제 API
     @DeleteMapping("/reviews/{reviewId}")
     public ResponseEntity<Void> deleteReview(
             @PathVariable Long reviewId,
@@ -45,5 +44,21 @@ public class ReviewController {
 
         reviewService.delete(reviewId, userDetails.getUser().getId());
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/reviews")
+    public ResponseEntity<ReviewCreateResponseDto> createReview(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @RequestBody @Valid ReviewCreateRequestDto requestDto) {
+
+        Long userId = userDetails.getUser().getId();
+        Long materialId = requestDto.getMaterialId();
+
+        ReviewCreateResponseDto responseDto = reviewService.createReview(
+                materialId,
+                userId,
+                requestDto
+        );
+        return ResponseEntity.ok(responseDto);
     }
 }

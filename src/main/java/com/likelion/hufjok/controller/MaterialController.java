@@ -3,8 +3,15 @@ package com.likelion.hufjok.controller;
 import com.likelion.hufjok.DTO.*;
 import com.likelion.hufjok.service.MaterialService;
 import com.likelion.hufjok.service.ReviewService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.likelion.hufjok.DTO.MaterialCreateRequestDto;
@@ -22,6 +29,7 @@ public class MaterialController {
     }
 
     @GetMapping
+    @Operation(summary = "자료 게시물 목록 조회")
     public ResponseEntity<?> getMaterials(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Integer year,
@@ -33,32 +41,32 @@ public class MaterialController {
         return ResponseEntity.ok(result);
     }
 
-    @PostMapping("/{materialId}/review")
-    public ResponseEntity<ReviewCreateResponseDto> createReview(
-            @PathVariable Long materialId,
-            @Valid @RequestBody ReviewCreateRequestDto request
+    @GetMapping("/{materialId}")
+    @Operation(summary = "특정 자료 상세 조회")
+    public ResponseEntity<MaterialGetResponseDto> getMaterialDetail(
+                                                                         @PathVariable Long materialId
     ) {
-        Long userId = 1L; // 임시 사용자 ID
-        ReviewCreateResponseDto response = reviewService.createReview(materialId, userId, request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        MaterialGetResponseDto response = materialService.getMaterial(materialId);
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{materialId}")
+    @Operation(summary = "자료 수정")
     public ResponseEntity<MaterialUpdateResponseDto> updateMaterial(
             @PathVariable Long materialId,
-            @Valid @RequestBody MaterialUpdateRequestDto request
+            @Valid @RequestBody MaterialUpdateRequestDto request,
+            @AuthenticationPrincipal Long userId
     ) {
-        Long userId = 1L; // 임시 사용자 ID
         MaterialUpdateResponseDto response = materialService.updateMaterial(materialId, userId, request);
         return ResponseEntity.ok(response);
     }
 
-    // --- 이 메소드를 클래스 안으로 옮겼습니다 ---
     @DeleteMapping("/{materialId}")
+    @Operation(summary = "자료 삭제")
     public ResponseEntity<Void> deleteMaterial(
-            @PathVariable Long materialId
+            @PathVariable Long materialId,
+            @AuthenticationPrincipal Long userId
     ) {
-        Long userId = 1L; // 임시 사용자 ID
         materialService.deleteMaterial(materialId, userId);
         return ResponseEntity.noContent().build();
     }

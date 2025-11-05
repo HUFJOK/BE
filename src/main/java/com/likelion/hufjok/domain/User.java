@@ -41,7 +41,7 @@ public class User {
 
     @Column(nullable = false) // --- points 필드 타입 수정 ---
     @Builder.Default
-    private int points = 0;
+    private int points = 500;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore

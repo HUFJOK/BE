@@ -85,9 +85,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                                     .providerId(providerId)
                                     .major("미입력")
                                     .nickname(defaultNickname)
-                                    .points(0)
-                                    .createdAt(LocalDateTime.now())
-                                    .updatedAt(LocalDateTime.now())
                                     .build()
                     );
                 });
