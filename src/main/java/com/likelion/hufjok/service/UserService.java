@@ -19,6 +19,7 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PointService pointService;
 
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
@@ -46,10 +47,13 @@ public class UserService {
                 .providerId(providerId)
                 .major("미입력")
                 .nickname(nickname)  // ★ NOT NULL 컬럼 채움
-                .points(200)           // ★ NOT NULL이면 기본값
+                .points(0)           // ★ NOT NULL이면 기본값
                 .build();
 
-        return userRepository.save(u);
+        User saved = userRepository.save(u);
+        pointService.awardSignupBonus(saved.getEmail());
+
+        return saved;
     }
 
     @Transactional

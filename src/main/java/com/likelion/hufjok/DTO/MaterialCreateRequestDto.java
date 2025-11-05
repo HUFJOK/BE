@@ -45,7 +45,6 @@ public class MaterialCreateRequestDto {
                 .courseName(this.courseName)
                 .year(this.year)
                 .semester(this.semester)
-                .filePath(filePath) // 파일 경로 주입
                 .user(user)
                 .build();
     }
