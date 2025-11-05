@@ -32,6 +32,9 @@ public class MaterialCreateRequestDto {
     @NotBlank(message = "학기를 입력해주세요.")
     private int semester;
 
+    @NotBlank(message = "수업 구분을 입력해주세요.")
+    private String courseDivision;
+
     private MultipartFile attachment;
 
     public Material toEntity(User user, String filePath) {

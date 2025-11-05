@@ -18,6 +18,7 @@ public class MaterialCreateResponseDto {
     private int year;
     private int semester;
     private LocalDateTime createdAt;
+    private String courseDivision;
 
     public static MaterialCreateResponseDto fromEntity(Material material) {
         return MaterialCreateResponseDto.builder()

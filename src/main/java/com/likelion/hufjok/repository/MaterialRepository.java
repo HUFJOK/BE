@@ -16,7 +16,7 @@ public interface MaterialRepository extends JpaRepository<Material, Long> {
     Page<Material> findFilteredMaterials(
             @Param("keyword") String keyword,
             @Param("year") Integer year,
-            @Param("semester") int semester,
+            @Param("semester") Integer semester,
             Pageable pageable
     );
 
