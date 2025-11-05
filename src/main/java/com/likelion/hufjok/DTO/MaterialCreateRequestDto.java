@@ -2,6 +2,8 @@ package com.likelion.hufjok.DTO;
 
 import com.likelion.hufjok.domain.Material;
 import com.likelion.hufjok.domain.User;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -27,10 +29,15 @@ public class MaterialCreateRequestDto {
     private String courseName;
 
     @NotNull(message = "연도를 입력해주세요.")
-    private int year;
+    @Min(value = 2000, message = "연도는 2000년 이상이어야 합니다.")
+    @Max(value = 2100, message = "연도는 2100년 이하여야 합니다.")
+    private Integer year;
 
-    @NotBlank(message = "학기를 입력해주세요.")
-    private int semester;
+
+    @NotNull(message = "학기를 입력해주세요.")
+    @Min(value = 1, message = "학기는 1 또는 2여야 합니다.")
+    @Max(value = 2, message = "학기는 1 또는 2여야 합니다.")
+    private Integer semester;
 
     @NotBlank(message = "수업 구분을 입력해주세요.")
     private String courseDivision;

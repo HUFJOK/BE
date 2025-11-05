@@ -3,10 +3,12 @@ package com.likelion.hufjok.service;
 import com.likelion.hufjok.DTO.*;
 import com.likelion.hufjok.domain.Attachment;
 import com.likelion.hufjok.domain.Material;
+import com.likelion.hufjok.domain.PointHistory;
 import com.likelion.hufjok.domain.User;
 import com.likelion.hufjok.repository.AttachmentRepository;
 import com.likelion.hufjok.repository.MaterialRepository;
 import com.likelion.hufjok.repository.UserRepository;
+import com.likelion.hufjok.service.PointService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,7 +32,7 @@ public class MaterialService {
     private final AttachmentRepository attachmentRepository;
     private final AttachmentService attachmentService;
     private final UserRepository userRepository;
-
+    private final PointService pointService;
 
     @Transactional
     public MaterialCreateResponseDto createMaterial(Long userId,
@@ -70,7 +72,21 @@ public class MaterialService {
             }
         }
 
+        pointService.updatePoints(
+                user.getEmail(),
+                200,
+                "자료 게시: " + savedMaterial.getTitle(),
+                PointHistory.PointType.EARN
+        );
+
         return MaterialCreateResponseDto.fromEntity(savedMaterial);
+    }
+
+    public MaterialGetResponseDto getMaterial(Long materialId) {
+        Material material = materialRepository.findById(materialId)
+                .orElseThrow(() -> new NotFoundException("Material", materialId));
+
+        return MaterialGetResponseDto.fromEntity(material);
     }
 
     @Transactional
