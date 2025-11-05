@@ -12,17 +12,24 @@ public class Attachment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String originalFileName;
+
+    @Column(nullable = false)
     private String storedFilePath;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "material_id")
+    @JoinColumn(name = "material_id", nullable = false)
     private Material material;
 
     @Builder
-    public Attachment(String originalFileName, String storedFilePath) {
+    public Attachment(String originalFileName, String storedFilePath, Material material) {
         this.originalFileName = originalFileName;
         this.storedFilePath = storedFilePath;
+
+        if (material != null) {
+            setMaterial(material);
+        }
     }
 
     public void setMaterial(Material material) {
