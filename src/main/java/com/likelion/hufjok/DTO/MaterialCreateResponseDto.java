@@ -19,6 +19,10 @@ public class MaterialCreateResponseDto {
     private int semester;
     private LocalDateTime createdAt;
 
+    private Integer earnedPoints;
+    private Integer currentPoints;
+    private String pointMessage;
+
     public static MaterialCreateResponseDto fromEntity(Material material) {
         return MaterialCreateResponseDto.builder()
                 .materialId(material.getId())
@@ -29,6 +33,9 @@ public class MaterialCreateResponseDto {
                 .year(material.getYear())
                 .semester(material.getSemester())
                 .createdAt(material.getCreatedAt())
+                .earnedPoints(200)
+                .currentPoints(material.getUser().getPoints())
+                .pointMessage("자료 게시로 200P가 적립되었습니다!")
                 .build();
     }
 }
