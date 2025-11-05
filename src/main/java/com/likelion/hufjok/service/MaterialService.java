@@ -112,9 +112,11 @@ public class MaterialService {
     }
 
     public MaterialListResponseDto getMaterials(String keyword, Integer year, Integer semester, String sortBy, int page) {
-        Sort sort = sortBy.equalsIgnoreCase("rating")
-                ? Sort.by(Sort.Direction.DESC, "avgRating")
-                : Sort.by(Sort.Direction.DESC, "createdAt");
+// 임시 수정안
+        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+// if (sortBy.equalsIgnoreCase("rating")) {
+//     sort = Sort.by(Sort.Direction.DESC, "avgRating");
+// }
         Pageable pageable = PageRequest.of(page - 1, 10, sort);
         Page<Material> materialsPage;
         if (keyword != null || year != null || semester != null) {
@@ -143,5 +145,29 @@ public class MaterialService {
         material.setTitle(request.title());
         material.setDescription(request.description());
         return MaterialUpdateResponseDto.from(material);
+    }
+
+    public MaterialListResponseDto getMyUploadedMaterials(Long userId, int page) {
+        // 1. 정렬 기준 (최신순)
+        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        Pageable pageable = PageRequest.of(page - 1, 10, sort);
+
+        // 2. Repository 호출 (새로 만든 메소드 사용)
+        Page<Material> materialsPage = materialRepository.findByUserId(userId, pageable);
+
+        // 3. DTO로 변환
+        List<MaterialSummaryDto> materialDtos = materialsPage.getContent().stream()
+                .map(MaterialSummaryDto::from)
+                .collect(Collectors.toList());
+
+        // 4. 페이지 정보 DTO 생성
+        PageInfo pageInfo = new PageInfo(
+                materialsPage.getNumber() + 1,
+                materialsPage.getTotalPages(),
+                materialsPage.getTotalElements()
+        );
+
+        // 5. 최종 응답 DTO로 반환
+        return new MaterialListResponseDto(pageInfo, materialDtos);
     }
 }

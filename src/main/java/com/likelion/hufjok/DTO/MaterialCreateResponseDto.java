@@ -18,6 +18,7 @@ public class MaterialCreateResponseDto {
     private int year;
     private int semester;
     private LocalDateTime createdAt;
+    private String courseDivision;
 
     private Integer earnedPoints;
     private Integer currentPoints;

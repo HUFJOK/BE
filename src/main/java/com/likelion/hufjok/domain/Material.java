@@ -35,6 +35,12 @@ public class Material {
     @Column(nullable = false)
     private int semester;
 
+    @Column(nullable = false)
+    private String filePath;
+
+    @Column(nullable = false)
+    private String courseDivision;
+
     @Column(nullable = false, updatable = false) // updatable = false 추가
     private LocalDateTime createdAt;
 

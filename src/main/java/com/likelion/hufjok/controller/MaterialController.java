@@ -99,4 +99,17 @@ public class MaterialController {
                 .created(URI.create("/api/v1/materials/" + response.getMaterialId()))
                 .body(response);
     }
+
+    @GetMapping("/me/materials")
+    @Operation(summary = "내가 올린 자료 목록 조회")
+    public ResponseEntity<MaterialListResponseDto> getMyUploadedMaterials(
+            @AuthenticationPrincipal Long userId,
+            @RequestParam(required = false, defaultValue = "1") int page
+    ) {
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        MaterialListResponseDto result = materialService.getMyUploadedMaterials(userId, page);
+        return ResponseEntity.ok(result);
+    }
 }

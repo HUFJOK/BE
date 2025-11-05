@@ -39,7 +39,12 @@ public class MaterialCreateRequestDto {
     @Max(value = 2, message = "학기는 1 또는 2여야 합니다.")
     private Integer semester;
 
-    public Material toEntity(User user) {
+    @NotBlank(message = "수업 구분을 입력해주세요.")
+    private String courseDivision;
+
+    private MultipartFile attachment;
+
+    public Material toEntity(User user, String filePath) {
         return Material.builder()
                 .title(this.title)
                 .description(this.description)
