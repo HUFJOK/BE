@@ -1,18 +1,11 @@
 package com.likelion.hufjok.service;
 
 import com.likelion.hufjok.DTO.*;
-import com.likelion.hufjok.domain.Attachment;
 import com.likelion.hufjok.domain.Material;
-import com.likelion.hufjok.domain.PointHistory;
 import com.likelion.hufjok.domain.User;
-import com.likelion.hufjok.repository.AttachmentRepository;
 import com.likelion.hufjok.repository.MaterialRepository;
 import com.likelion.hufjok.repository.UserRepository;
-import com.likelion.hufjok.service.PointService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -31,89 +24,26 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
+@RequiredArgsConstructor
 public class MaterialService {
 
     private final MaterialRepository materialRepository;
-    private final AttachmentRepository attachmentRepository;
-    private final AttachmentService attachmentService;
     private final UserRepository userRepository;
-    private final PointService pointService;
 
     @Transactional
-    public MaterialCreateResponseDto createMaterial(Long userId,
-                                                    @Valid MaterialCreateRequestDto metadata,
-                                                    List<MultipartFile> files) throws IOException {
-
-        if (files == null || files.isEmpty() || files.stream().allMatch(MultipartFile::isEmpty)) {
-            throw new IllegalArgumentException("file.required");
-        }
-
+    public MaterialResponseDto createMaterial(Long userId, MaterialCreateRequestDto requestDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User", userId));
 
         Material material = Material.builder()
-                .title(metadata.getTitle())
-                .description(metadata.getDescription())
-                .professorName(metadata.getProfessorName())
-                .courseName(metadata.getCourseName())
-                .year(metadata.getYear())
-                .semester(metadata.getSemester())
+                .title(requestDto.title())
+                .description(requestDto.description())
+                // TODO: requestDto에서 나머지 필드(교수명, 강의명 등)도 마저 설정해야 합니다.
                 .user(user)
                 .build();
 
         Material savedMaterial = materialRepository.save(material);
-
-        for (MultipartFile file : files) {
-            if (!file.isEmpty()) {
-                AttachmentDto attachmentInfo = attachmentService.saveFileAndGetInfo(file);
-
-                Attachment attachment = Attachment.builder()
-                        .originalFileName(attachmentInfo.getOriginalFileName())
-                        .storedFilePath(attachmentInfo.getStoredFilePath())
-                        .build();
-
-                attachment.setMaterial(savedMaterial);
-                attachmentRepository.save(attachment);
-            }
-        }
-
-        pointService.updatePoints(
-                user.getEmail(),
-                200,
-                "자료 게시: " + savedMaterial.getTitle(),
-                PointHistory.PointType.EARN
-        );
-
-        return MaterialCreateResponseDto.fromEntity(savedMaterial);
-    }
-
-    public MaterialGetResponseDto getMaterial(Long materialId) {
-        Material material = materialRepository.findById(materialId)
-                .orElseThrow(() -> new NotFoundException("Material", materialId));
-
-        return MaterialGetResponseDto.fromEntity(material);
-    }
-
-    @Transactional
-    public void deleteMaterial(Long materialId, Long userId) {
-
-        Material material = materialRepository.findById(materialId)
-                .orElseThrow(() -> new NotFoundException("Material", materialId));
-
-        if (!material.getUser().getId().equals(userId)) {
-            throw new RuntimeException("삭제할 권한이 없습니다.");
-        }
-
-        for (Attachment attachment : material.getAttachments()) {
-            try {
-                attachmentService.deleteFileByPath(attachment.getStoredFilePath());
-                attachmentRepository.delete(attachment);
-            } catch (IOException e) {
-                System.err.println("파일 삭제 실패: " + attachment.getStoredFilePath() + " | 오류: " + e.getMessage());
-            }
-        }
-
-        materialRepository.delete(material);
+        return new MaterialResponseDto(savedMaterial);
     }
 
     public MaterialListResponseDto getMaterials(String keyword, Integer year, Integer semester, String sortBy, int page) {
@@ -125,6 +55,7 @@ public class MaterialService {
         Pageable pageable = PageRequest.of(page - 1, 10, sort);
         Page<Material> materialsPage;
         if (keyword != null || year != null || semester != null) {
+            // 참고: findFilteredMaterials 메소드는 Repository에 직접 구현(JPQL 또는 QueryDSL)해야 합니다.
             materialsPage = materialRepository.findFilteredMaterials(keyword, year, semester, pageable);
         } else {
             materialsPage = materialRepository.findAll(pageable);
@@ -152,68 +83,14 @@ public class MaterialService {
         return MaterialUpdateResponseDto.from(material);
     }
 
-    public MaterialListResponseDto getMyUploadedMaterials(Long userId, int page) {
-        // 1. 정렬 기준 (최신순)
-        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
-        Pageable pageable = PageRequest.of(page - 1, 10, sort);
-
-        // 2. Repository 호출 (새로 만든 메소드 사용)
-        Page<Material> materialsPage = materialRepository.findByUserId(userId, pageable);
-
-        // 3. DTO로 변환
-        List<MaterialSummaryDto> materialDtos = materialsPage.getContent().stream()
-                .map(MaterialSummaryDto::from)
-                .collect(Collectors.toList());
-
-        // 4. 페이지 정보 DTO 생성
-        PageInfo pageInfo = new PageInfo(
-                materialsPage.getNumber() + 1,
-                materialsPage.getTotalPages(),
-                materialsPage.getTotalElements()
-        );
-
-        // 5. 최종 응답 DTO로 반환
-        return new MaterialListResponseDto(pageInfo, materialDtos);
-    }
-
     @Transactional
-    public AttachmentDownloadDto downloadMaterial(Long materialId, Long attachmentId, Long userId) throws IOException {
-
+    public void deleteMaterial(Long materialId, Long userId) {
         Material material = materialRepository.findById(materialId)
                 .orElseThrow(() -> new NotFoundException("Material", materialId));
 
-        Attachment attachment = attachmentRepository.findById(attachmentId)
-                .orElseThrow(() -> new NotFoundException("Attachment", attachmentId));
-
-        if (!attachment.getMaterial().getId().equals(materialId)) {
-            throw new IllegalArgumentException("해당 자료에 속한 파일이 아닙니다.");
-        }
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User", userId));
-
         if (!material.getUser().getId().equals(userId)) {
-            pointService.updatePoints(
-                    user.getEmail(),
-                    200,
-                    "자료 다운로드: " + material.getTitle(),
-                    PointHistory.PointType.USE
-            );
+            throw new RuntimeException("삭제할 권한이 없습니다.");
         }
-
-        Path filePath = Paths.get(attachment.getStoredFilePath());
-        Resource resource = new UrlResource(filePath.toUri());
-
-        if (!resource.exists() || !resource.isReadable()) {
-            throw new IOException("파일을 읽을 수 없습니다: " + attachment.getOriginalFileName());
-        }
-
-        return AttachmentDownloadDto.builder()
-                .resource(resource)
-                .originalFileName(attachment.getOriginalFileName())
-                .fileSize(Files.size(filePath))
-                .contentType(Files.probeContentType(filePath))
-                .build();
+        materialRepository.delete(material);
     }
-
 }
