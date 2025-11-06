@@ -19,17 +19,12 @@ import java.nio.file.AccessDeniedException;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
     private final MaterialRepository materialRepository;
-
-    public ReviewService(ReviewRepository reviewRepository, UserRepository userRepository, MaterialRepository materialRepository) {
-        this.reviewRepository = reviewRepository;
-        this.userRepository = userRepository;
-        this.materialRepository = materialRepository;
-    }
 
     public ReviewCreateResponseDto createReview(Long materialId, Long userId, ReviewCreateRequestDto request) {
         User user = userRepository.findById(userId)
@@ -63,6 +58,10 @@ public class ReviewService {
         if (!review.getUser().getId().equals(currentUserId)) {
             throw new AccessDeniedException("후기를 수정할 권한이 없습니다.");
         }
+
+        review.setRating(dto.getRating());
+        review.setComment(dto.getComment());
+
     }
 
     @Transactional
