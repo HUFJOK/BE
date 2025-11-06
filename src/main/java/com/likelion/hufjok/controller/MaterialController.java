@@ -151,31 +151,4 @@ public class MaterialController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         }
     }
-
-    @GetMapping("/me/materials")
-    @Operation(summary = "내가 올린 자료 목록 조회")
-    public ResponseEntity<MaterialListResponseDto> getMyUploadedMaterials(
-            @AuthenticationPrincipal Long userId,
-            @RequestParam(required = false, defaultValue = "1") int page
-    ) {
-        if (userId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        MaterialListResponseDto result = materialService.getMyUploadedMaterials(userId, page);
-        return ResponseEntity.ok(result);
-    }
-
-    // ▼▼▼ '이건휘'님 파트 - '다운로드 목록' API (새로 추가됨) ▼▼▼
-    @GetMapping("/me/downloads")
-    @Operation(summary = "내가 다운로드(구매)한 자료 목록 조회")
-    public ResponseEntity<MaterialListResponseDto> getMyDownloadedMaterials(
-            @AuthenticationPrincipal Long userId,
-            @RequestParam(required = false, defaultValue = "1") int page
-    ) {
-        if (userId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        MaterialListResponseDto result = materialService.getMyDownloadedMaterials(userId, page);
-        return ResponseEntity.ok(result);
-    }
 }
