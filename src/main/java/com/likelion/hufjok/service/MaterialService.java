@@ -4,9 +4,7 @@ import com.likelion.hufjok.DTO.*;
 import com.likelion.hufjok.domain.*; // User, Material, Attachment, PointHistory, UserMaterial
 import com.likelion.hufjok.repository.*; // 5개 Repository
 import jakarta.validation.Valid;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
