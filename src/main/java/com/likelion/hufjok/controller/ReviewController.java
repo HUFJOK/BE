@@ -49,12 +49,11 @@ public class ReviewController {
             @AuthenticationPrincipal OidcUser principal,
             @RequestBody @Valid ReviewUpdateRequestDto requestDto) throws AccessDeniedException {
 
-        String email = principal.getEmail();
-        Long userId = userService.findByEmail(email.toLowerCase())
-                .map(User::getId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "등록되지 않은 사용자입니다."));
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
 
-        reviewService.update(reviewId, userId, requestDto);
+        reviewService.update(reviewId, userDetails.getUser().getId(), requestDto);
         return ResponseEntity.ok().build();
     }
 
@@ -74,6 +73,11 @@ public class ReviewController {
 
         reviewService.delete(reviewId, userId);
 
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        reviewService.delete(reviewId, userDetails.getUser().getId());
         return ResponseEntity.noContent().build();
     }
 
@@ -86,11 +90,11 @@ public class ReviewController {
             @AuthenticationPrincipal OidcUser principal,
             @RequestBody @Valid ReviewCreateRequestDto requestDto) {
 
-        String email = principal.getEmail();
-        Long userId = userService.findByEmail(email.toLowerCase())
-                .map(User::getId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "등록되지 않은 사용자입니다."));
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
 
+        Long userId = userDetails.getUser().getId();
         Long materialId = requestDto.getMaterialId();
 
         ReviewCreateResponseDto responseDto = reviewService.createReview(
