@@ -68,6 +68,11 @@ public class MaterialController {
             @Valid @RequestBody MaterialUpdateRequestDto request,
             @AuthenticationPrincipal Long userId
     ) {
+
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         MaterialUpdateResponseDto response = materialService.updateMaterial(materialId, userId, request);
         return ResponseEntity.ok(response);
     }
@@ -78,6 +83,11 @@ public class MaterialController {
             @PathVariable Long materialId,
             @AuthenticationPrincipal Long userId
     ) {
+
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         materialService.deleteMaterial(materialId, userId);
         return ResponseEntity.noContent().build();
     }
@@ -99,6 +109,11 @@ public class MaterialController {
             @Parameter(hidden = true)
             @AuthenticationPrincipal Long userId
     ) throws IOException {
+
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         MaterialCreateResponseDto response = materialService.createMaterial(userId, metadata, files);
 
         return ResponseEntity

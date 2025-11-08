@@ -9,6 +9,7 @@ import com.likelion.hufjok.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +34,10 @@ public class ReviewController {
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestBody @Valid ReviewUpdateRequestDto requestDto) throws AccessDeniedException {
 
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         reviewService.update(reviewId, userDetails.getUser().getId(), requestDto);
         return ResponseEntity.ok().build();
     }
@@ -42,6 +47,10 @@ public class ReviewController {
             @PathVariable Long reviewId,
             @AuthenticationPrincipal UserDetailsImpl userDetails) throws AccessDeniedException {
 
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         reviewService.delete(reviewId, userDetails.getUser().getId());
         return ResponseEntity.noContent().build();
     }
@@ -50,6 +59,10 @@ public class ReviewController {
     public ResponseEntity<ReviewCreateResponseDto> createReview(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @RequestBody @Valid ReviewCreateRequestDto requestDto) {
+
+        if (userDetails == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
 
         Long userId = userDetails.getUser().getId();
         Long materialId = requestDto.getMaterialId();
