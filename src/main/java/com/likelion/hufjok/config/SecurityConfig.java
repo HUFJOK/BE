@@ -32,10 +32,17 @@ public class SecurityConfig {
                                 "/swagger.html",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
-                                "/api-docs/**"
+                                "/api-docs/**",
+                                "/login/**",
+                                "/oauth2/**",
+                                "/error",
+                                "/"
                         ).permitAll()
                         // 2. API 테스트를 위한 경로도 허용
-                        .requestMatchers("/api/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/materials/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.POST,   "/api/v1/materials/**").authenticated()
+                        .requestMatchers(org.springframework.http.HttpMethod.PUT,    "/api/v1/materials/**").authenticated()
+                        .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/v1/materials/**").authenticated()
                         // 3. 그 외 기본 페이지 및 리소스 허용
                         .requestMatchers("/", "/login", "/oauth2/**", "/error").permitAll()
                         // 4. 위에서 지정한 경로 외의 모든 경로는 인증된 사용자만 접근 가능
