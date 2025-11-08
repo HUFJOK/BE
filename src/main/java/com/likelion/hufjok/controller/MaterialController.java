@@ -1,11 +1,18 @@
 package com.likelion.hufjok.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.likelion.hufjok.DTO.*;
 import com.likelion.hufjok.domain.Material;
+import com.likelion.hufjok.domain.User;
 import com.likelion.hufjok.service.MaterialService;
 import com.likelion.hufjok.service.NotFoundException;
 import com.likelion.hufjok.service.ReviewService;
+import com.likelion.hufjok.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Encoding;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
@@ -19,6 +26,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import io.swagger.v3.oas.annotations.Parameter;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.web.server.ResponseStatusException;
+import java.util.Optional;
 
 import java.io.IOException;
 import java.net.URI;
@@ -29,15 +39,83 @@ import java.util.Map; // <-- Map import 추가
 
 @RestController
 @RequestMapping("/api/v1/materials")
+@RequiredArgsConstructor
 public class MaterialController {
 
     private final MaterialService materialService;
     private final ReviewService reviewService;
+    private final ObjectMapper objectMapper;
+    private final UserService userService;
 
-    public MaterialController(MaterialService materialService, ReviewService reviewService) {
-        this.materialService = materialService;
-        this.reviewService = reviewService;
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(
+            summary = "새 자료 작성 및 파일 업로드",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content = @Content(
+                            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                            schema = @Schema(implementation = MaterialCreateMultipartDoc.class),
+                            encoding = {
+                                    @Encoding(name = "metadata", contentType = MediaType.APPLICATION_JSON_VALUE),
+                                    @Encoding(name = "files", contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+                            }
+                    )
+            )
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "생성 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터"),
+            @ApiResponse(responseCode = "413", description = "파일 크기 초과")
+    })
+    public ResponseEntity<MaterialCreateResponseDto> createMaterialMultipart(
+            @RequestPart("metadata") String metadataJson,
+            @RequestPart("files") List<MultipartFile> files,
+            @AuthenticationPrincipal OidcUser principal
+    ) throws IOException {
+
+        if (principal == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
+        }
+
+        String email = principal.getEmail();
+        Long userId = userService.findByEmail(email.toLowerCase())
+                .map(User::getId)
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.UNAUTHORIZED, "등록되지 않은 사용자입니다."));
+
+        MaterialCreateRequestDto metadata;
+        try {
+            metadata = objectMapper.readValue(metadataJson, MaterialCreateRequestDto.class);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "metadata(JSON) 형식이 올바르지 않습니다.", e);
+        }
+
+        // ---- 필수 필드 검증 (null → DB 에러 방지) ----
+        if (metadata.courseDivision() == null || metadata.courseDivision().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "courseDivision은 필수입니다.");
+        }
+        if (metadata.courseDivision() == null || metadata.courseDivision().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "courseName은 필수입니다.");
+        }
+        if (metadata.title() == null || metadata.title().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "title은 필수입니다.");
+        }
+        if (metadata.year() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "year는 필수입니다.");
+        }
+        if (metadata.semester() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "semester는 필수입니다.");
+        }
+
+        MaterialCreateResponseDto response =
+                materialService.createMaterial(userId, metadata, files);
+
+        return ResponseEntity
+                .created(URI.create("/api/v1/materials/" + response.getMaterialId()))
+                .body(response);
     }
+
 
     @GetMapping
     @Operation(summary = "자료 게시물 목록 조회")
@@ -66,8 +144,22 @@ public class MaterialController {
     public ResponseEntity<MaterialUpdateResponseDto> updateMaterial(
             @PathVariable Long materialId,
             @Valid @RequestBody MaterialUpdateRequestDto request,
-            @AuthenticationPrincipal Long userId
+            @AuthenticationPrincipal OidcUser principal
     ) {
+        if (principal == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
+        }
+
+        // 이메일 꺼내기
+        String email = principal.getEmail();
+
+        // 이메일로 User 찾아서 userId 얻기
+        Long userId = userService.findByEmail(email.toLowerCase())
+                .map(User::getId)
+                .orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.UNAUTHORIZED, "등록되지 않은 사용자입니다."));
+
+        // 이제 userId 전달
         MaterialUpdateResponseDto response = materialService.updateMaterial(materialId, userId, request);
         return ResponseEntity.ok(response);
     }
@@ -76,35 +168,23 @@ public class MaterialController {
     @Operation(summary = "자료 삭제")
     public ResponseEntity<Void> deleteMaterial(
             @PathVariable Long materialId,
-            @AuthenticationPrincipal Long userId
+            @AuthenticationPrincipal OidcUser principal // 👈 타입 변경
     ) {
+        if (principal == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
+        }
+
+        // ✅ ID 추출 로직 추가
+        final String email = principal.getEmail();
+        Long userId = userService.findByEmail(email.toLowerCase())
+                .map(User::getId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED, "등록되지 않은 사용자입니다."));
+
         materialService.deleteMaterial(materialId, userId);
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "새 자료 작성 및 파일 업로드")
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "생성 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터"),
-            @ApiResponse(responseCode = "413", description = "파일 크기 초과")
-    })
-    public ResponseEntity<MaterialCreateResponseDto> createMaterialMultipart(
-            @Parameter(description = "자료 메타데이터", required = true)
-            @RequestPart("metadata") @Valid MaterialCreateRequestDto metadata,
-
-            @Parameter(description = "업로드할 파일 목록", required = true)
-            @RequestPart("files") List<MultipartFile> files,
-
-            @Parameter(hidden = true)
-            @AuthenticationPrincipal Long userId
-    ) throws IOException {
-        MaterialCreateResponseDto response = materialService.createMaterial(userId, metadata, files);
-
-        return ResponseEntity
-                .created(URI.create("/api/v1/materials/" + response.getMaterialId()))
-                .body(response);
-    }
 
     // ▼▼▼ '옥민희'님 파트 - '자료 구매' API (수정됨) ▼▼▼
     @GetMapping("/{materialId}/download/{attachmentId}") // <-- attachmentId 추가
@@ -151,4 +231,14 @@ public class MaterialController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         }
     }
+
+    static class MaterialCreateMultipartDoc {
+        @Schema(description = "자료 메타데이터(JSON)")
+        public MaterialCreateRequestDto metadata;
+
+        @ArraySchema(arraySchema = @Schema(description = "업로드할 파일들"),
+                schema = @Schema(type = "string", format = "binary"))
+        public List<MultipartFile> files;
+    }
+
 }

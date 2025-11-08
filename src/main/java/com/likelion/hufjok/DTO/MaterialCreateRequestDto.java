@@ -1,6 +1,8 @@
 package com.likelion.hufjok.DTO;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.*;
+
 
 public record MaterialCreateRequestDto(
         String title,

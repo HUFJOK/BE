@@ -20,7 +20,6 @@ public class AttachmentService { // FileService -> AttachmentService
 
     @Value("${file.dir}")
     private String fileDir;
-
     public AttachmentDto saveFileAndGetInfo(MultipartFile file) throws IOException {
         if (file.isEmpty()) {
             throw new IllegalArgumentException("업로드할 파일이 없습니다.");
