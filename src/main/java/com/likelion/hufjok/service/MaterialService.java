@@ -2,6 +2,7 @@ package com.likelion.hufjok.service;
 
 import com.likelion.hufjok.DTO.*;
 import com.likelion.hufjok.domain.*; // User, Material, Attachment, PointHistory, UserMaterial
+import com.likelion.hufjok.file.UploadFile;
 import com.likelion.hufjok.repository.*; // 5개 Repository
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,9 +12,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import com.likelion.hufjok.file.FileStore;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -32,51 +36,91 @@ public class MaterialService {
     private final AttachmentService attachmentService;
     private final UserRepository userRepository;
     private final PointService pointService;
+    private final FileStore fileStore;
 
     // ▼▼▼ 1. '구매 내역' 저장을 위해 추가 ▼▼▼
     private final UserMaterialRepository userMaterialRepository;
+    private static final long MB = 1024 * 1024;
+    private static final long MAX_FILE_SIZE_BYTES    = 200 * MB; // 개별 파일 최대 200MB
+    private static final long MAX_REQUEST_SIZE_BYTES = 200 * MB;
 
     @Transactional
-    public MaterialCreateResponseDto createMaterial(Long userId,
-                                                    @Valid MaterialCreateRequestDto metadata,
-                                                    List<MultipartFile> files) throws IOException {
-        
-        // (이하 `createMaterial` 메소드는 '옥민희'님이 구현한 `develop` 브랜치 최신 코드와 동일)
+    public MaterialCreateResponseDto createMaterial(
+            Long userId,
+            @Valid MaterialCreateRequestDto metadata,
+            List<MultipartFile> files
+    ) throws IOException {
+
+        // 1) 인증 & 입력 검증
+        if (userId == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
+        }
         if (files == null || files.isEmpty() || files.stream().allMatch(MultipartFile::isEmpty)) {
-            throw new IllegalArgumentException("file.required");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "업로드할 파일이 비어 있습니다.");
         }
 
+        // (선택) PDF만 허용
+        for (MultipartFile f : files) {
+            if (f.isEmpty()) continue;
+            String name = f.getOriginalFilename();
+            String ct   = (f.getContentType() == null) ? "" : f.getContentType().toLowerCase();
+            boolean pdfByName = (name != null && name.toLowerCase().endsWith(".pdf"));
+            boolean pdfByCt   = ct.contains("pdf");
+            if (!(pdfByName || pdfByCt)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "PDF 파일만 업로드 가능합니다: " + name);
+            }
+        }
+
+        // 2) 용량 선검증(옵션) — 네가 넣어둔 로깅 그대로 활용해도 됨
+        long totalBytes = 0L;
+        final long MB = 1024 * 1024;
+        final long MAX_FILE = 200L * MB;
+        final long MAX_REQ  = 200L * MB;
+        for (MultipartFile f : files) {
+            long sz = f.getSize();
+            totalBytes += sz;
+            if (sz > MAX_FILE) {
+                throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,
+                        "개별 파일이 200MB를 초과: " + f.getOriginalFilename());
+            }
+        }
+        if (totalBytes > MAX_REQ) {
+            throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE,
+                    "요청 총 용량이 200MB를 초과");
+        }
+
+        // 3) 유저 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User", userId));
 
+        // 4) 자료(메타데이터) 저장
         Material material = Material.builder()
                 .title(metadata.title())
                 .description(metadata.description())
                 .professorName(metadata.professorName())
                 .courseName(metadata.courseName())
+                .courseDivision(metadata.courseDivision())
                 .year(metadata.year())
                 .semester(metadata.semester())
-                // .filePath( ... ) // TODO: filePath 관련 로직이 Material 엔티티와 DTO에 있으나, 빌더에 빠져있음 (원본 코드)
-                // .courseDivision( ... ) // TODO: (원본 코드)
                 .user(user)
                 .build();
-
         Material savedMaterial = materialRepository.save(material);
 
+        // 5) 파일 저장 + 첨부 엔티티 저장
         for (MultipartFile file : files) {
-            if (!file.isEmpty()) {
-                AttachmentDto attachmentInfo = attachmentService.saveFileAndGetInfo(file);
+            if (file.isEmpty()) continue;
 
-                Attachment attachment = Attachment.builder()
-                        .originalFileName(attachmentInfo.getOriginalFileName())
-                        .storedFilePath(attachmentInfo.getStoredFilePath())
-                        .material(savedMaterial) // 빌더에서 바로 Material 설정
-                        .build();
-                
-                attachmentRepository.save(attachment);
-            }
+            AttachmentDto info = attachmentService.saveFileAndGetInfo(file);
+            Attachment attachment = Attachment.builder()
+                    .originalFileName(info.getOriginalFileName())
+                    .storedFilePath(info.getStoredFilePath()) // DB에는 파일명만
+                    .material(savedMaterial)
+                    .build();
+            attachmentRepository.save(attachment);
         }
 
+        // 6) 포인트 적립
         pointService.updatePoints(
                 user.getEmail(),
                 200,
@@ -84,8 +128,11 @@ public class MaterialService {
                 PointHistory.PointType.EARN
         );
 
+        // 7) 응답
         return MaterialCreateResponseDto.fromEntity(savedMaterial);
     }
+
+
 
     public MaterialGetResponseDto getMaterial(Long materialId) {
         // ('옥민희'님 코드 - `develop` 브랜치 최신 코드와 동일)

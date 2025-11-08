@@ -1,13 +1,16 @@
 package com.likelion.hufjok.controller;
 
 import com.likelion.hufjok.DTO.MaterialListResponseDto;
+import com.likelion.hufjok.domain.User;
 import com.likelion.hufjok.service.MaterialService;
+import com.likelion.hufjok.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 public class MyPageController {
 
     private final MaterialService materialService;
+    private final UserService userService;
 
     @GetMapping("/materials")
     @Operation(
@@ -23,12 +27,21 @@ public class MyPageController {
             security = @SecurityRequirement(name = "Cookie Authentication")
     )
     public ResponseEntity<MaterialListResponseDto> getMyUploadedMaterials(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal OidcUser principal,
             @RequestParam(required = false, defaultValue = "1") int page
     ) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String email = principal.getEmail();
+        Long userId = userService.findByEmail(email.toLowerCase())
+                .map(User::getId)
+                .orElse(null);
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+
         MaterialListResponseDto result = materialService.getMyUploadedMaterials(userId, page);
         return ResponseEntity.ok(result);
     }
@@ -39,12 +52,21 @@ public class MyPageController {
             security = @SecurityRequirement(name = "Cookie Authentication")
     )
     public ResponseEntity<MaterialListResponseDto> getMyDownloadedMaterials(
-            @AuthenticationPrincipal Long userId,
+            @AuthenticationPrincipal OidcUser principal,
             @RequestParam(required = false, defaultValue = "1") int page
     ) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String email = principal.getEmail();
+        Long userId = userService.findByEmail(email.toLowerCase())
+                .map(User::getId)
+                .orElse(null);
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+
         MaterialListResponseDto result = materialService.getMyDownloadedMaterials(userId, page);
         return ResponseEntity.ok(result);
     }

@@ -1,12 +1,16 @@
 package com.likelion.hufjok.DTO;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.*;
 
+
 public record MaterialCreateRequestDto(
-        @NotBlank String title,
+        String title,
         String description,
-        @NotBlank String professorName,
-        @NotBlank String courseName,
-        @Min(2000) int year,
-        @Min(1) @Max(2) int semester
+        String professorName,
+        String courseName,
+        int year,
+        int semester,
+        String courseDivision,
+        String grade
 ) {}
