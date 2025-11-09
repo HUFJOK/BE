@@ -11,10 +11,12 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
-import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.LinkedHashMap;
+import java.util.List;
 
 @RequiredArgsConstructor
 @EnableWebSecurity
@@ -56,6 +58,8 @@ public class SecurityConfig {
                         ).permitAll()
                         // 2. API 테스트를 위한 경로도 허용
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/materials/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+
                         .requestMatchers(org.springframework.http.HttpMethod.POST,   "/api/v1/materials/**").authenticated()
                         .requestMatchers(org.springframework.http.HttpMethod.PUT,    "/api/v1/materials/**").authenticated()
                         .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/v1/materials/**").authenticated()
@@ -74,4 +78,24 @@ public class SecurityConfig {
 
         return http.build();
     }
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration cfg = new CorsConfiguration();
+        // 배포 도메인만 허용 (https)
+        cfg.setAllowedOrigins(List.of("https://hufjok.lion.it.kr"));
+        // 프론트/스웨거에서 쓰는 메소드/헤더 허용
+        cfg.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
+        cfg.setAllowedHeaders(List.of("Authorization","Content-Type","Accept","Origin","X-Requested-With"));
+        // 응답에서 노출할 헤더(필요시)
+        cfg.setExposedHeaders(List.of("Location"));
+        // 세션/쿠키 사용 시 true
+        cfg.setAllowCredentials(true);
+        // preflight 캐시
+        cfg.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", cfg);
+        return source;
+    }
+
 }
