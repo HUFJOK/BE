@@ -44,3 +44,5 @@ out/
 
 ### OAuth ###
 !/src/main/resources/application-oauth.properties
+
+.env
