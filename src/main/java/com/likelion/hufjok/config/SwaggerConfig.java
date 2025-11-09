@@ -31,6 +31,6 @@ public class SwaggerConfig {
                                 new SecurityScheme()
                                         .type(SecurityScheme.Type.APIKEY)
                                         .in(SecurityScheme.In.COOKIE)
-                                        .name("JSESSIONID"))); // ✅ 세션 쿠키로 인증
+                                        .name("JSESSIONID")));
     }
 }

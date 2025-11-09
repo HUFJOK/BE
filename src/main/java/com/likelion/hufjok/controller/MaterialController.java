@@ -22,6 +22,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -71,14 +72,14 @@ public class MaterialController {
     public ResponseEntity<MaterialCreateResponseDto> createMaterialMultipart(
             @RequestPart("metadata") String metadataJson,
             @RequestPart("files") List<MultipartFile> files,
-            @AuthenticationPrincipal OidcUser principal
+            @AuthenticationPrincipal OAuth2User principal
     ) throws IOException {
 
         if (principal == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
         }
 
-        String email = principal.getEmail();
+        String email = principal.getAttribute("email");
         Long userId = userService.findByEmail(email.toLowerCase())
                 .map(User::getId)
                 .orElseThrow(() ->
@@ -92,7 +93,7 @@ public class MaterialController {
         }
 
         // ---- 필수 필드 검증 (null → DB 에러 방지) ----
-        if (metadata.courseDivision() == null || metadata.courseDivision().isBlank()) {
+        if (metadata.courseName() == null || metadata.courseName().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "courseDivision은 필수입니다.");
         }
         if (metadata.courseDivision() == null || metadata.courseDivision().isBlank()) {
@@ -144,14 +145,14 @@ public class MaterialController {
     public ResponseEntity<MaterialUpdateResponseDto> updateMaterial(
             @PathVariable Long materialId,
             @Valid @RequestBody MaterialUpdateRequestDto request,
-            @AuthenticationPrincipal OidcUser principal
+            @AuthenticationPrincipal OAuth2User principal
     ) {
         if (principal == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
         }
 
         // 이메일 꺼내기
-        String email = principal.getEmail();
+        String email = principal.getAttribute("email");
 
         // 이메일로 User 찾아서 userId 얻기
         Long userId = userService.findByEmail(email.toLowerCase())
@@ -168,14 +169,14 @@ public class MaterialController {
     @Operation(summary = "자료 삭제")
     public ResponseEntity<Void> deleteMaterial(
             @PathVariable Long materialId,
-            @AuthenticationPrincipal OidcUser principal // 👈 타입 변경
+            @AuthenticationPrincipal OAuth2User principal // 👈 타입 변경
     ) {
         if (principal == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
         }
 
         // ✅ ID 추출 로직 추가
-        final String email = principal.getEmail();
+        final String email = principal.getAttribute("email");
         Long userId = userService.findByEmail(email.toLowerCase())
                 .map(User::getId)
                 .orElseThrow(() -> new ResponseStatusException(
