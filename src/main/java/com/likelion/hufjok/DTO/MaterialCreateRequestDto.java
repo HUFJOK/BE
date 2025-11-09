@@ -9,8 +9,8 @@ public record MaterialCreateRequestDto(
         String description,
         String professorName,
         String courseName,
-        int year,
-        int semester,
+        Integer year,
+        Integer semester,
         String courseDivision,
         String grade
 ) {}

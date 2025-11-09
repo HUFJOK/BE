@@ -46,14 +46,21 @@ public class ReviewController {
     )
     public ResponseEntity<Void> updateReview(
             @PathVariable Long reviewId,
-            @AuthenticationPrincipal OidcUser principal,
+            @AuthenticationPrincipal OidcUser principal, // ⭐ principal로 받음
             @RequestBody @Valid ReviewUpdateRequestDto requestDto) throws AccessDeniedException {
 
-        if (userDetails == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        // ⭐ principal null 체크
+        if (principal == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
         }
 
-        reviewService.update(reviewId, userDetails.getUser().getId(), requestDto);
+        // ⭐ principal에서 이메일 추출 → userId 얻기
+        String email = principal.getEmail();
+        Long userId = userService.findByEmail(email.toLowerCase())
+                .map(User::getId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "등록되지 않은 사용자입니다."));
+
+        reviewService.update(reviewId, userId, requestDto);
         return ResponseEntity.ok().build();
     }
 
@@ -66,18 +73,18 @@ public class ReviewController {
             @PathVariable Long reviewId,
             @AuthenticationPrincipal OidcUser principal) throws AccessDeniedException {
 
+        // ⭐ principal null 체크
+        if (principal == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
+        }
+
+        // ⭐ principal에서 이메일 추출 → userId 얻기
         String email = principal.getEmail();
         Long userId = userService.findByEmail(email.toLowerCase())
                 .map(User::getId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "등록되지 않은 사용자입니다."));
 
         reviewService.delete(reviewId, userId);
-
-        if (userDetails == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        reviewService.delete(reviewId, userDetails.getUser().getId());
         return ResponseEntity.noContent().build();
     }
 
@@ -90,12 +97,18 @@ public class ReviewController {
             @AuthenticationPrincipal OidcUser principal,
             @RequestBody @Valid ReviewCreateRequestDto requestDto) {
 
-        if (userDetails == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if (principal == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
         }
 
-        Long userId = userDetails.getUser().getId();
+        // ⭐ principal에서 이메일 추출 → userId 얻기
+        String email = principal.getEmail();
+        Long userId = userService.findByEmail(email.toLowerCase())
+                .map(User::getId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "등록되지 않은 사용자입니다."));
+
         Long materialId = requestDto.getMaterialId();
+
 
         ReviewCreateResponseDto responseDto = reviewService.createReview(
                 materialId,
