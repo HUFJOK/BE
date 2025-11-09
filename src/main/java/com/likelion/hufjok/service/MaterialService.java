@@ -103,6 +103,8 @@ public class MaterialService {
                 .courseDivision(metadata.courseDivision())
                 .year(metadata.year())
                 .semester(metadata.semester())
+                .description(metadata.description())
+                .grade(metadata.grade() != null ? metadata.grade() : "미정")
                 .user(user)
                 .build();
         Material savedMaterial = materialRepository.save(material);

@@ -41,7 +41,7 @@ public class Material {
     @Column(nullable = false)
     private String courseDivision;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String grade;
 
     @Column(nullable = false, updatable = false) // updatable = false 추가
