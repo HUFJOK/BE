@@ -33,7 +33,7 @@ public class AttachmentService { // FileService -> AttachmentService
         }
         String storedFilename = uuid + extension;
 
-        Path fullPath = Paths.get(fileDir + storedFilename);
+        Path fullPath = Paths.get(fileDir, storedFilename);
 
         if (!Files.exists(fullPath.getParent())) {
             Files.createDirectories(fullPath.getParent());
