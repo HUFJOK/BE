@@ -72,8 +72,8 @@ public class MaterialController {
             @ApiResponse(responseCode = "413", description = "파일 크기 초과")
     })
     public ResponseEntity<MaterialCreateResponseDto> createMaterialMultipart(
-            @RequestPart("metadata") String metadataJson,
-            @RequestPart("files") List<MultipartFile> files,
+            @RequestPart(value = "metadata") String metadataJson,
+            @RequestPart(value = "files") List<MultipartFile> files,
             @AuthenticationPrincipal OAuth2User principal
     ) throws IOException {
 
