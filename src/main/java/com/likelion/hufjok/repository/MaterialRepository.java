@@ -10,7 +10,8 @@ import org.springframework.data.repository.query.Param;
 public interface MaterialRepository extends JpaRepository<Material, Long> {
 
     @Query("SELECT m FROM Material m " +
-            "WHERE (:keyword IS NULL OR m.title LIKE %:keyword% OR m.courseName LIKE %:keyword% OR m.professorName LIKE %:keyword%) " +
+            "WHERE m.isDeleted = FALSE " +
+            "AND (:keyword IS NULL OR m.title LIKE %:keyword% OR m.courseName LIKE %:keyword% OR m.professorName LIKE %:keyword%) " +
             "AND (:year IS NULL OR m.year = :year) " +
             "AND (:semester IS NULL OR m.semester = :semester)")
     Page<Material> findFilteredMaterials(
@@ -20,6 +21,6 @@ public interface MaterialRepository extends JpaRepository<Material, Long> {
             Pageable pageable
     );
 
-    Page<Material> findByUserId(Long userId, Pageable pageable);
+    Page<Material> findByUserIdAndIsDeletedFalse(Long userId, Pageable pageable);
 
 }

@@ -46,6 +46,9 @@ public class Material {
     @Column(nullable = true)
     private String grade;
 
+    @Column(columnDefinition = "boolean default false")
+    private Boolean isDeleted = false;
+
     @Column(nullable = false, updatable = false) // updatable = false 추가
     @CreationTimestamp
     private LocalDateTime createdAt;

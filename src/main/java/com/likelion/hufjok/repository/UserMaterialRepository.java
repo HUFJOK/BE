@@ -6,7 +6,9 @@ import com.likelion.hufjok.domain.UserMaterial;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface UserMaterialRepository extends JpaRepository<UserMaterial, Long> {
 
@@ -16,4 +18,8 @@ public interface UserMaterialRepository extends JpaRepository<UserMaterial, Long
     // 2. '내가 다운로드한 목록' 조회용 (N+1 문제 해결을 위해 JOIN FETCH 사용)
     @Query("SELECT um FROM UserMaterial um JOIN FETCH um.material WHERE um.user = :user")
     Page<UserMaterial> findByUserWithMaterial(User user, Pageable pageable);
+
+    @Modifying
+    @Transactional
+    void deleteByMaterial(Material material);
 }

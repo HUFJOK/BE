@@ -43,6 +43,7 @@ public class MaterialService {
     private static final long MB = 1024 * 1024;
     private static final long MAX_FILE_SIZE_BYTES    = 200 * MB; // 개별 파일 최대 200MB
     private static final long MAX_REQUEST_SIZE_BYTES = 200 * MB;
+    private static final int DOWNLOAD_COST = 200;
 
     @Transactional
     public MaterialCreateResponseDto createMaterial(
@@ -125,7 +126,7 @@ public class MaterialService {
         // 6) 포인트 적립
         pointService.updatePoints(
                 user.getEmail(),
-                200,
+                DOWNLOAD_COST,
                 "자료 게시: " + savedMaterial.getTitle(),
                 PointHistory.PointType.EARN
         );
@@ -154,6 +155,8 @@ public class MaterialService {
             throw new RuntimeException("삭제할 권한이 없습니다.");
         }
 
+        userMaterialRepository.deleteByMaterial(material);
+
         for (Attachment attachment : material.getAttachments()) {
             try {
                 attachmentService.deleteFileByPath(attachment.getStoredFilePath());
@@ -163,7 +166,7 @@ public class MaterialService {
             }
         }
 
-        materialRepository.delete(material);
+        material.setIsDeleted(true);
     }
 
     public MaterialListResponseDto getMaterials(String keyword, Integer year, Integer semester, String sortBy, int page) {
@@ -204,7 +207,7 @@ public class MaterialService {
         // ('이건휘'님 코드 - `develop` 브랜치 최신 코드와 동일)
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(page - 1, 10, sort);
-        Page<Material> materialsPage = materialRepository.findByUserId(userId, pageable);
+        Page<Material> materialsPage = materialRepository.findByUserIdAndIsDeletedFalse(userId, pageable);
         List<MaterialSummaryDto> materialDtos = materialsPage.getContent().stream()
                 .map(MaterialSummaryDto::from)
                 .collect(Collectors.toList());
@@ -233,30 +236,6 @@ public class MaterialService {
                 .orElseThrow(() -> new NotFoundException("User", userId));
 
         // --- ▼▼▼ 2. '구매 내역 저장' 로직 수정/추가 ▼▼▼ ---
-        if (!material.getUser().getId().equals(userId)) { // 본인 자료가 아니라면
-
-            // 중복 구매 확인
-            boolean alreadyPurchased = userMaterialRepository.existsByUserAndMaterial(user, material);
-            if (!alreadyPurchased) { // 구매 내역이 없다면
-
-                // 포인트 차감
-                pointService.updatePoints(
-                        user.getEmail(),
-                        200, // (임시) 200 포인트
-                        "자료 다운로드: " + material.getTitle(),
-                        PointHistory.PointType.USE
-                );
-
-                // 구매 내역 저장 (이 로직이 빠져있었음!)
-                UserMaterial purchaseRecord = new UserMaterial();
-                purchaseRecord.setUser(user);
-                purchaseRecord.setMaterial(material);
-                userMaterialRepository.save(purchaseRecord);
-            }
-            // 이미 구매한 사람이면 (alreadyPurchased == true) 포인트 차감 없이 다운로드 진행
-        }
-        // --- ▲▲▲ 여기까지 수정/추가 ▲▲▲ ---
-
         String storedPath = attachment.getStoredFilePath();
         String fileDirPrefix = "/data/uploads";
 
@@ -268,14 +247,45 @@ public class MaterialService {
         Path filePath = Paths.get(storedPath);
 
         if (!Files.exists(filePath) || !Files.isReadable(filePath)) {
-            throw new IOException("파일을 읽을 수 없습니다. 경로: " +  filePath.toAbsolutePath() + ", 파일명: " + attachment.getOriginalFileName());
+            // 500 에러 대신 404를 반환하도록 변경 (IOException 대신)
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "파일이 서버에서 삭제되었거나 찾을 수 없습니다: " + attachment.getOriginalFileName());
         }
+
+        if (!material.getUser().getId().equals(userId)) { // 본인 자료가 아니라면
+
+            // 중복 구매 확인
+            boolean alreadyPurchased = userMaterialRepository.existsByUserAndMaterial(user, material);
+            if (!alreadyPurchased) { // 구매 내역이 없다면
+
+                int currentPoints = pointService.getUserPoints(user.getEmail());
+
+                if (currentPoints < DOWNLOAD_COST) {
+                    throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                            "포인트 잔액이 부족합니다. (현재 잔액: " + currentPoints + ", 필요 포인트: " + DOWNLOAD_COST + ")");
+                }
+
+                // 포인트 차감
+                pointService.updatePoints(
+                        user.getEmail(),
+                        DOWNLOAD_COST, // (임시) 200 포인트
+                        "자료 다운로드: " + material.getTitle(),
+                        PointHistory.PointType.USE
+                );
+                UserMaterial purchaseRecord = new UserMaterial();
+                purchaseRecord.setUser(user);
+                purchaseRecord.setMaterial(material);
+                userMaterialRepository.save(purchaseRecord);
+
+            }
+        }
+        // --- ▲▲▲ 여기까지 수정/추가 ▲▲▲ ---
 
         // Path로 Resource 생성하기
         Resource resource = new UrlResource(filePath.toUri());
 
         if (!resource.exists() || !resource.isReadable()) {
-            throw new IOException("파일을 읽을 수 없습니다. 경로: " + filePath.toAbsolutePath());
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "파일을 읽을 수 없습니다. 리소스 생성 오류");
         }
 
         return AttachmentDownloadDto.builder()

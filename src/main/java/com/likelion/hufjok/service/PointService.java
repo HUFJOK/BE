@@ -24,6 +24,8 @@ public class PointService {
     private final PointRepository pointRepository;
     private final PointHistoryRepository pointHistoryRepository;
 
+    private static final int SIGNUP_BONUS_AMOUNT = 500;
+
     // 현재 내 포인트 조회
     @Transactional(readOnly = true)
     public int getUserPoints(String email) {
@@ -58,7 +60,7 @@ public class PointService {
 
         if (pointHistoryRepository.existsByUserAndType(user, PointHistory.PointType.SIGNUP_BONUS)) return ;
 
-        updatePoints(email, 500, "회원가입 보상", PointHistory.PointType.SIGNUP_BONUS);
+        updatePoints(email, SIGNUP_BONUS_AMOUNT, "회원가입 보상", PointHistory.PointType.SIGNUP_BONUS);
     }
 
     // 포인트 적립, 차감 등 (업데이트)
@@ -78,8 +80,9 @@ public class PointService {
 
         // 포인트가 부족하면 패스
         int newBalance = user.getPoints() + delta;
-        if (newBalance < 0 && user.getPoints() + amount < 0) {
-            throw new IllegalArgumentException("포인트가 부족합니다. 현재 잔액: " + user.getPoints());
+
+        if (type == PointHistory.PointType.USE && newBalance < 0) {
+            throw new IllegalArgumentException("포인트 잔액이 부족합니다. 현재 잔액: " + user.getPoints());
         }
 
         user.setPoints(newBalance);
