@@ -29,6 +29,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.web.server.ResponseStatusException;
+
 import java.util.Optional;
 
 import java.io.IOException;
@@ -57,6 +58,7 @@ public class MaterialController {
                     content = @Content(
                             mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
                             schema = @Schema(implementation = MaterialCreateMultipartDoc.class),
+
                             encoding = {
                                     @Encoding(name = "metadata", contentType = MediaType.APPLICATION_JSON_VALUE),
                                     @Encoding(name = "files", contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE)
