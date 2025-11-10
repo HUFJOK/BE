@@ -218,7 +218,7 @@ public class MaterialService {
 
     @Transactional
     public AttachmentDownloadDto downloadMaterial(Long materialId, Long attachmentId, Long userId) throws IOException {
-        
+
         Material material = materialRepository.findById(materialId)
                 .orElseThrow(() -> new NotFoundException("Material", materialId));
 
@@ -234,11 +234,11 @@ public class MaterialService {
 
         // --- ▼▼▼ 2. '구매 내역 저장' 로직 수정/추가 ▼▼▼ ---
         if (!material.getUser().getId().equals(userId)) { // 본인 자료가 아니라면
-            
+
             // 중복 구매 확인
             boolean alreadyPurchased = userMaterialRepository.existsByUserAndMaterial(user, material);
             if (!alreadyPurchased) { // 구매 내역이 없다면
-                
+
                 // 포인트 차감
                 pointService.updatePoints(
                         user.getEmail(),
@@ -265,8 +265,7 @@ public class MaterialService {
             System.out.println("경로 오류 자동 수정됨: " + storedPath);
         }
 
-        Path filePath = Paths.get(attachment.getStoredFilePath());
-//        Resource resource = new UrlResource(filePath.toUri());
+        Path filePath = Paths.get(storedPath);
 
         if (!Files.exists(filePath) || !Files.isReadable(filePath)) {
             throw new IOException("파일을 읽을 수 없습니다. 경로: " +  filePath.toAbsolutePath() + ", 파일명: " + attachment.getOriginalFileName());
