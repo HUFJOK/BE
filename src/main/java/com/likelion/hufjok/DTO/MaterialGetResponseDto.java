@@ -50,6 +50,7 @@ public class MaterialGetResponseDto {
                 .attachments(material.getAttachments() != null
                         ? material.getAttachments().stream()
                         .map(attachment -> AttachmentDto.builder()
+                                .id(attachment.getId())
                                 .originalFileName(attachment.getOriginalFileName())
                                 .storedFilePath(attachment.getStoredFilePath())
                                 .build())

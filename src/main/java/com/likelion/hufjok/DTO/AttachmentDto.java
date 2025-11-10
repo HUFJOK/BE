@@ -6,6 +6,7 @@ import lombok.Getter;
 @Getter
 @Builder
 public class AttachmentDto {
+    private Long id;
     private String originalFileName;
     private String storedFilePath;
 }
