@@ -257,6 +257,14 @@ public class MaterialService {
         }
         // --- ▲▲▲ 여기까지 수정/추가 ▲▲▲ ---
 
+        String storedPath = attachment.getStoredFilePath();
+        String fileDirPrefix = "/data/uploads";
+
+        if (storedPath.startsWith(fileDirPrefix) && storedPath.charAt(fileDirPrefix.length()) != '/'){
+            storedPath = fileDirPrefix + "/" + storedPath.substring(fileDirPrefix.length());
+            System.out.println("경로 오류 자동 수정됨: " + storedPath);
+        }
+
         Path filePath = Paths.get(attachment.getStoredFilePath());
 //        Resource resource = new UrlResource(filePath.toUri());
 
