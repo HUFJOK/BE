@@ -45,7 +45,6 @@ import java.util.Map; // <-- Map import 추가
 public class MaterialController {
 
     private final MaterialService materialService;
-    private final ReviewService reviewService;
     private final ObjectMapper objectMapper;
     private final UserService userService;
 
@@ -209,12 +208,18 @@ public class MaterialController {
             @PathVariable Long attachmentId,
 
             @Parameter(hidden = true)
-            @AuthenticationPrincipal Long userId
+            @AuthenticationPrincipal OAuth2User principal
     ) throws IOException {
         
-        if (userId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "로그인이 필요합니다."));
+        if (principal == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
         }
+
+        String email = principal.getAttribute("email");
+        Long userId = userService.findByEmail(email.toLowerCase())
+                .map(User::getId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED, "등록되지 않은 사용자입니다."));
         
         try {
             AttachmentDownloadDto fileDownload = materialService.downloadMaterial(materialId, attachmentId, userId);
