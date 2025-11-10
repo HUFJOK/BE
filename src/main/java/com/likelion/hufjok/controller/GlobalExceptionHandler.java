@@ -39,7 +39,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MissingServletRequestPartException.class)
-    public ResponseEntity<?> handleMissingPart(MissingServletRequestPartException e, HttpServletRequest request) {
+    public ResponseEntity<?> handleMissingPart(MissingServletRequestPartException e) {
 
         System.err.println("[ERROR] Missing Request Part: " + e.getRequestPartName());
         e.printStackTrace();
