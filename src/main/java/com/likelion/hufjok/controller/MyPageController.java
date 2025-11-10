@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -27,14 +28,14 @@ public class MyPageController {
             security = @SecurityRequirement(name = "Cookie Authentication")
     )
     public ResponseEntity<MaterialListResponseDto> getMyUploadedMaterials(
-            @AuthenticationPrincipal OidcUser principal,
+            @AuthenticationPrincipal OAuth2User principal,
             @RequestParam(required = false, defaultValue = "1") int page
     ) {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        String email = principal.getEmail();
+        String email = principal.getAttribute("email");
         Long userId = userService.findByEmail(email.toLowerCase())
                 .map(User::getId)
                 .orElse(null);
@@ -52,14 +53,14 @@ public class MyPageController {
             security = @SecurityRequirement(name = "Cookie Authentication")
     )
     public ResponseEntity<MaterialListResponseDto> getMyDownloadedMaterials(
-            @AuthenticationPrincipal OidcUser principal,
+            @AuthenticationPrincipal OAuth2User principal,
             @RequestParam(required = false, defaultValue = "1") int page
     ) {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        String email = principal.getEmail();
+        String email = principal.getAttribute("email");
         Long userId = userService.findByEmail(email.toLowerCase())
                 .map(User::getId)
                 .orElse(null);

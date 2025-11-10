@@ -5,7 +5,6 @@ import com.likelion.hufjok.DTO.ReviewCreateResponseDto;
 import com.likelion.hufjok.DTO.ReviewGetResponseDto;
 import com.likelion.hufjok.DTO.ReviewUpdateRequestDto;
 import com.likelion.hufjok.domain.User;
-import com.likelion.hufjok.security.UserDetailsImpl;
 import com.likelion.hufjok.service.ReviewService;
 import com.likelion.hufjok.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -46,7 +45,7 @@ public class ReviewController {
     )
     public ResponseEntity<Void> updateReview(
             @PathVariable Long reviewId,
-            @AuthenticationPrincipal OidcUser principal, // ⭐ principal로 받음
+            @AuthenticationPrincipal OAuth2User principal, // ⭐ principal로 받음
             @RequestBody @Valid ReviewUpdateRequestDto requestDto) throws AccessDeniedException {
 
         // ⭐ principal null 체크
@@ -55,7 +54,7 @@ public class ReviewController {
         }
 
         // ⭐ principal에서 이메일 추출 → userId 얻기
-        String email = principal.getEmail();
+        String email = principal.getAttribute("email");
         Long userId = userService.findByEmail(email.toLowerCase())
                 .map(User::getId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "등록되지 않은 사용자입니다."));
@@ -71,15 +70,15 @@ public class ReviewController {
     )
     public ResponseEntity<Void> deleteReview(
             @PathVariable Long reviewId,
-            @AuthenticationPrincipal OidcUser principal) throws AccessDeniedException {
+            @AuthenticationPrincipal OAuth2User principal) throws AccessDeniedException {
 
-        // ⭐ principal null 체크
+        // principal null 체크
         if (principal == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
         }
 
-        // ⭐ principal에서 이메일 추출 → userId 얻기
-        String email = principal.getEmail();
+        // principal에서 이메일 추출 → userId 얻기
+        String email = principal.getAttribute("email");
         Long userId = userService.findByEmail(email.toLowerCase())
                 .map(User::getId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "등록되지 않은 사용자입니다."));
@@ -94,15 +93,15 @@ public class ReviewController {
             security = @SecurityRequirement(name = "Cookie Authentication")
     )
     public ResponseEntity<ReviewCreateResponseDto> createReview(
-            @AuthenticationPrincipal OidcUser principal,
+            @AuthenticationPrincipal OAuth2User principal,
             @RequestBody @Valid ReviewCreateRequestDto requestDto) {
 
         if (principal == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
         }
 
-        // ⭐ principal에서 이메일 추출 → userId 얻기
-        String email = principal.getEmail();
+        // principal에서 이메일 추출 → userId 얻기
+        String email = principal.getAttribute("email");
         Long userId = userService.findByEmail(email.toLowerCase())
                 .map(User::getId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "등록되지 않은 사용자입니다."));
