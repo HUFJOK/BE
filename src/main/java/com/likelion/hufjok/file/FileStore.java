@@ -48,7 +48,7 @@ public class FileStore {
         Files.createDirectories(destPath.getParent());
 
         // 저장 (Path 또는 File 모두 가능)
-        multipartFile.transferTo(destPath.toFile());
+        multipartFile.transferTo(destPath);
 
         return new UploadFile(originalFilename, storedFileName); // DB엔 파일명만 저장(권장)
     }
