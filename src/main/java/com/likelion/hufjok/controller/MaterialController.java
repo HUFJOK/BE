@@ -109,12 +109,25 @@ public class MaterialController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "semester는 필수입니다.");
         }
 
-        MaterialCreateResponseDto response =
-                materialService.createMaterial(userId, metadata, files);
+        try {
+            MaterialCreateResponseDto response =
+                    materialService.createMaterial(userId, metadata, files); // 🚨 서비스 호출
 
-        return ResponseEntity
-                .created(URI.create("/api/v1/materials/" + response.getMaterialId()))
-                .body(response);
+            return ResponseEntity
+                    .created(URI.create("/api/v1/materials/" + response.getMaterialId()))
+                    .body(response);
+
+        } catch (Exception e) { // 🚨 모든 예외를 잡습니다.
+            // 1. Docker 로그에 예외 Stack Trace를 강제로 출력합니다.
+            e.printStackTrace();
+
+            // 2. 401 대신 명확한 서버 오류(500)를 반환합니다.
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "파일 업로드 처리 중 예외 발생: " + e.getMessage(),
+                    e
+            );
+        }
     }
 
 
