@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 public class AuthController {
-    @GetMapping("/")
+    @GetMapping("/api/v1")
     @ResponseBody
     public String home(@AuthenticationPrincipal OAuth2User userPrincipal) {
         if (userPrincipal != null) {
