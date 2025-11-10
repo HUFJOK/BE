@@ -109,11 +109,20 @@ public class ReviewController {
         Long materialId = requestDto.getMaterialId();
 
 
-        ReviewCreateResponseDto responseDto = reviewService.createReview(
-                materialId,
-                userId,
-                requestDto
-        );
-        return ResponseEntity.ok(responseDto);
+        try {
+            ReviewCreateResponseDto responseDto = reviewService.createReview(
+                    materialId,
+                    userId,
+                    requestDto
+            );
+            return ResponseEntity.ok(responseDto);
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR,
+                    "리뷰 처리 중 예외 발생: " + e.getMessage(), e
+            );
+        }
     }
 }
