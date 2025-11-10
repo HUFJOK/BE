@@ -258,10 +258,17 @@ public class MaterialService {
         // --- ▲▲▲ 여기까지 수정/추가 ▲▲▲ ---
 
         Path filePath = Paths.get(attachment.getStoredFilePath());
+//        Resource resource = new UrlResource(filePath.toUri());
+
+        if (!Files.exists(filePath) || !Files.isReadable(filePath)) {
+            throw new IOException("파일을 읽을 수 없습니다. 경로: " +  filePath.toAbsolutePath() + ", 파일명: " + attachment.getOriginalFileName());
+        }
+
+        // Path로 Resource 생성하기
         Resource resource = new UrlResource(filePath.toUri());
 
         if (!resource.exists() || !resource.isReadable()) {
-            throw new IOException("파일을 읽을 수 없습니다: " + attachment.getOriginalFileName());
+            throw new IOException("파일을 읽을 수 없습니다. 경로: " + filePath.toAbsolutePath());
         }
 
         return AttachmentDownloadDto.builder()
