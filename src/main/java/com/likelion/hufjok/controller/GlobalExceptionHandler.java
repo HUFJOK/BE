@@ -38,17 +38,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(413).body("업로드 가능한 최대 파일 크기를 초과했습니다.");
     }
 
-    @ExceptionHandler(MissingServletRequestPartException.class)
-    public ResponseEntity<?> handleMissingPart(MissingServletRequestPartException e) {
 
-        System.err.println("[ERROR] Missing Request Part: " + e.getRequestPartName());
-        e.printStackTrace();
-
-        // 401 에러 대신 정확한 400 Bad Request를 반환합니다.
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
-                "error", "필수 요청 필드가 누락되었습니다.",
-                "part_name", e.getRequestPartName()
-        ));
-    }
 
 }
