@@ -45,7 +45,7 @@ public class PointService {
         // .stream(): 리스트를 순차적으로 하나씩 꺼내서 가공할 수 있게 해주는 자바함수형 API
         return histories.stream()
                 .map(history -> PointResponseDto.builder()
-                        .amount(history.getAmountAfter())
+                        .amount(history.getAmountChange())
                         .reason(history.getReason() != null ? history.getReason() : history.getType().name())
                         .createdAt(history.getCreatedAt())
                         .email(user.getEmail())
