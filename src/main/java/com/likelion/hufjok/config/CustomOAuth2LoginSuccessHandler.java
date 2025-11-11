@@ -25,11 +25,13 @@ public class CustomOAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSucc
 
     private final String frontendBaseUrl;
 
+
     public CustomOAuth2LoginSuccessHandler(
             UserService userService,
             @Value("${spring.frontend.url}") String frontendBaseUrl) {
 
         this.userService = userService;
+        this.frontendBaseUrl = frontendBaseUrl;
     }
 
     @Override
