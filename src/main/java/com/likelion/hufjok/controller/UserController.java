@@ -206,16 +206,5 @@ public class UserController {
         return ResponseEntity.ok(UserResponseDto.fromEntity(updated));
     }
 
-//    @DeleteMapping("mypage/me/minor")
-//    @Operation(summary = "부전공 삭제", security = @SecurityRequirement(name = "Cookie Authentication"))
-//    public ResponseEntity<UserResponseDto> deleteMinor(@AuthenticationPrincipal OAuth2User principal) {
-//        if (principal == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-//        String email = principal.getAttribute("email");
-//        if (email == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-//
-//        User updated = userService.clearMinor(email);
-//        return ResponseEntity.ok(UserResponseDto.fromEntity(updated));
-//    }
-
 }
 
