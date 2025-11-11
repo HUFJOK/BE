@@ -52,10 +52,7 @@ public class CustomOAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSucc
     }
 
     private String resolveFrontendTarget(HttpServletRequest request) {
-        String host = request.getServerName();
-        if ("hufjok.lion.it.kr".equalsIgnoreCase(host)) {
-            return "https://hufjok.lion.it.kr/loading";
-        }
+
         return "http://localhost:5173/loading";
     }
 }
