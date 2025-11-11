@@ -88,7 +88,7 @@ public class ReviewController {
     )
     public ResponseEntity<Void> updateReview(
             @PathVariable Long reviewId,
-            @AuthenticationPrincipal OAuth2User principal, // ⭐ principal로 받음
+            @AuthenticationPrincipal OAuth2User principal,
             @RequestBody @Valid ReviewUpdateRequestDto requestDto) throws AccessDeniedException {
 
         // ⭐ principal null 체크

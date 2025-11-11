@@ -21,6 +21,6 @@ public class ReviewGetResponseDto {
         this.rating = review.getRating();
         this.comment = review.getComment();
         this.createdAt = review.getCreatedAt();
-        this.isAuthor = isAuthor();
+        this.isAuthor = isAuthor;
     }
 }
