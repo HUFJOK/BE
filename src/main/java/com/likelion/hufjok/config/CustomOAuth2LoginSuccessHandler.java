@@ -9,6 +9,8 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
+
 
 import java.io.IOException;
 import java.util.Locale;
@@ -19,11 +21,13 @@ public class CustomOAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSucc
     private static final String ALLOWED_DOMAIN = "hufs.ac.kr";
     private final UserService userService;
 
+    @Value("${frontend.url}")
+    private String frontendUrl;
+
 
     public CustomOAuth2LoginSuccessHandler(UserService userService) {
         this.userService = userService;
-        setAlwaysUseDefaultTargetUrl(false);
-        setDefaultTargetUrl("/");
+        setAlwaysUseDefaultTargetUrl(true);
     }
 
     @Override
@@ -37,22 +41,18 @@ public class CustomOAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSucc
 
         String normEmail = (email == null) ? "" : email.toLowerCase(Locale.ROOT);
 
-        if (normEmail.endsWith("@" + ALLOWED_DOMAIN)) {
-            userService.findByEmail(normEmail)
-                    .orElseGet(() -> userService.saveFirstLogin(normEmail, providerId));
-
-            clearAuthenticationAttributes(request);
-
-            String target = resolveFrontendTarget(request);
-            getRedirectStrategy().sendRedirect(request, response, target);
-        } else {
+        if (!normEmail.endsWith("@" + ALLOWED_DOMAIN)) {
             new SecurityContextLogoutHandler().logout(request, response, authentication);
             response.sendRedirect("/login?error=unauthorized_domain");
+            return;
         }
+
+        userService.findByEmail(normEmail)
+                .orElseGet(() -> userService.saveFirstLogin(normEmail, providerId));
+
+        clearAuthenticationAttributes(request);
+
+        getRedirectStrategy().sendRedirect(request, response, frontendUrl);
     }
 
-    private String resolveFrontendTarget(HttpServletRequest request) {
-
-        return "http://localhost:5173/loading";
-    }
 }
