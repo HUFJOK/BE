@@ -31,19 +31,29 @@ public class MyPageController {
             @AuthenticationPrincipal OAuth2User principal,
             @RequestParam(required = false, defaultValue = "1") int page
     ) {
+        System.out.println("=== /api/v1/me/materials 호출됨 ===");
+        
         if (principal == null) {
+            System.out.println("principal이 null입니다!");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         String email = principal.getAttribute("email");
+        System.out.println("email: " + email);
+        
         Long userId = userService.findByEmail(email.toLowerCase())
                 .map(User::getId)
                 .orElse(null);
+        
+        System.out.println("userId: " + userId);
+        
         if (userId == null) {
+            System.out.println("userId가 null입니다!");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
         MaterialListResponseDto result = materialService.getMyUploadedMaterials(userId, page);
+        System.out.println("결과 자료 개수: " + result.materials().size());
         return ResponseEntity.ok(result);
     }
 

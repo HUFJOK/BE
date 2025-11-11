@@ -45,11 +45,15 @@ public class UserService {
                 .providerId(providerId)
                 .major("미입력")
                 .nickname(nickname)  // ★ NOT NULL 컬럼 채움
-                // .points(0) 삭제 - User.java에 기본값 0이 이미 설정됨
+                .points(500)  // 회원가입 보너스 포인트 직접 설정
+                .bonusAwarded(false)  // 아직 히스토리에 기록되지 않음
                 .build();
 
-        User saved = userRepository.saveAndFlush(u); // save -> saveAndFlush로 변경
+        User saved = userRepository.saveAndFlush(u);
+        
+        // 포인트 히스토리에 회원가입 보너스 기록
         pointService.awardSignupBonus(saved.getEmail());
+        
         return saved;
     }
 

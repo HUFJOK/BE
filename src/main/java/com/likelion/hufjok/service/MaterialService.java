@@ -142,6 +142,11 @@ public class MaterialService {
         Material material = materialRepository.findById(materialId)
                 .orElseThrow(() -> new NotFoundException("Material", materialId));
 
+        // 삭제된 자료는 조회 불가
+        if (material.getIsDeleted()) {
+            throw new NotFoundException("Material", materialId);
+        }
+
         return MaterialGetResponseDto.fromEntity(material);
     }
 
@@ -203,9 +208,16 @@ public class MaterialService {
 
     public MaterialListResponseDto getMyUploadedMaterials(Long userId, int page) {
         // ('이건휘'님 코드 - `develop` 브랜치 최신 코드와 동일)
+        System.out.println("=== getMyUploadedMaterials 호출 ===");
+        System.out.println("userId: " + userId);
+        System.out.println("page: " + page);
+        
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(page - 1, 10, sort);
         Page<Material> materialsPage = materialRepository.findByUserIdAndIsDeletedFalse(userId, pageable);
+        
+        System.out.println("조회된 자료 개수: " + materialsPage.getTotalElements());
+        
         List<MaterialSummaryDto> materialDtos = materialsPage.getContent().stream()
                 .map(MaterialSummaryDto::from)
                 .collect(Collectors.toList());
@@ -306,8 +318,11 @@ public class MaterialService {
         Page<UserMaterial> purchases = userMaterialRepository.findByUserWithMaterial(user, pageable);
 
         // 2. 구매 내역(UserMaterial)에서 족보(Material) 정보만 꺼내서 DTO로 변환
+        // 삭제되지 않은 자료만 포함
         List<MaterialSummaryDto> materialDtos = purchases.getContent().stream()
-                .map(userMaterial -> MaterialSummaryDto.from(userMaterial.getMaterial()))
+                .map(UserMaterial::getMaterial)
+                .filter(material -> !material.getIsDeleted()) // 삭제된 자료 제외
+                .map(MaterialSummaryDto::from)
                 .collect(Collectors.toList());
 
         // 3. 페이지 정보

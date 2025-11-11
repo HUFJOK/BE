@@ -21,6 +21,7 @@ public interface MaterialRepository extends JpaRepository<Material, Long> {
             Pageable pageable
     );
 
-    Page<Material> findByUserIdAndIsDeletedFalse(Long userId, Pageable pageable);
+    @Query("SELECT m FROM Material m WHERE m.user.id = :userId AND m.isDeleted = FALSE")
+    Page<Material> findByUserIdAndIsDeletedFalse(@Param("userId") Long userId, Pageable pageable);
 
 }
