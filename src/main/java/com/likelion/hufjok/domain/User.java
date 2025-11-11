@@ -28,6 +28,7 @@ public class User {
     private String providerId;
 
     @Column(name = "is_onboarding_completed", nullable = false)
+    @Builder.Default
     private Boolean isOnboardingCompleted = false;
 
     @Column(nullable = false, updatable = false)

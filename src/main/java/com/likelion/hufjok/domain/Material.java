@@ -47,6 +47,7 @@ public class Material {
     private String grade;
 
     @Column
+    @Builder.Default
     private Boolean isDeleted = false;
 
     @Column(nullable = false, updatable = false) // updatable = false 추가
