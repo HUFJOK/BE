@@ -23,13 +23,12 @@ public class CustomOAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSucc
     private static final String ALLOWED_DOMAIN = "hufs.ac.kr";
     private final UserService userService;
 
-    @Value("${frontend.url}")
-    private String frontendUrl;
+    @Value("${frontend.base-url}")
+    private String frontendBaseUrl;
 
 
     public CustomOAuth2LoginSuccessHandler(UserService userService) {
         this.userService = userService;
-        setAlwaysUseDefaultTargetUrl(true);
     }
 
     @Override
@@ -45,24 +44,24 @@ public class CustomOAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSucc
 
         if (!normEmail.endsWith("@" + ALLOWED_DOMAIN)) {
             new SecurityContextLogoutHandler().logout(request, response, authentication);
-            response.sendRedirect("/login?error=unauthorized_domain");
+            String errorUrl = frontendBaseUrl + "/login?error=unauthorized_domain";
+            getRedirectStrategy().sendRedirect(request, response, errorUrl);
             return;
         }
 
         userService.findByEmail(normEmail)
                 .orElseGet(() -> userService.saveFirstLogin(normEmail, providerId));
 
-        clearAuthenticationAttributes(request);
-
-        super.onAuthenticationSuccess(request, response, authentication);
+        String targetUrl = frontendBaseUrl + "/loading";
+        getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 
     @Override
     protected String determineTargetUrl(HttpServletRequest request,
                                         HttpServletResponse response,
                                         Authentication authentication) {
-        log.info("[LOGIN SUCCESS] redirect -> {}", frontendUrl);
-        return frontendUrl;
+        log.info("[LOGIN SUCCESS] redirect -> {}", frontendBaseUrl);
+        return frontendBaseUrl;
     }
 
 }
