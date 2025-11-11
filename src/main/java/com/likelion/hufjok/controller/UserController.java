@@ -97,12 +97,23 @@ public class UserController {
             description = "내 포인트의 이력을 확인합니다.",
             security = @SecurityRequirement(name = "Cookie Authentication"))
     public ResponseEntity<?> getMyPointHistory(@AuthenticationPrincipal OAuth2User principal) {
-        if (principal == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        System.out.println("=== /api/v1/users/mypage/points/history 호출됨 ===");
+        
+        if (principal == null) {
+            System.out.println("principal이 null입니다!");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
 
         String email = principal.getAttribute("email");
-        if (email == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        System.out.println("email: " + email);
+        
+        if (email == null) {
+            System.out.println("email이 null입니다!");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
 
-        List<PointResponseDto> history= pointService.getPointHistory(email);
+        List<PointResponseDto> history = pointService.getPointHistory(email);
+        System.out.println("조회된 포인트 이력 개수: " + history.size());
         return ResponseEntity.ok(history);
     }
 
