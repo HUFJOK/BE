@@ -103,14 +103,14 @@ public class UserService {
         return OnboardingResponseDto.from(savedUser);
     }
 
-
-    // 이중/부전 삭제
-    @Transactional
-    public User clearMinor(String email) {
-        User user = userRepository.findByEmail(email.toLowerCase())
-                .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다.", email));
-        user.setMinor(null);
-        return userRepository.save(user);
-    }
+//
+//    // 이중/부전 삭제
+//    @Transactional
+//    public User clearMinor(String email) {
+//        User user = userRepository.findByEmail(email.toLowerCase())
+//                .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다.", email));
+//        user.setMinor(null);
+//        return userRepository.save(user);
+//    }
 
 }
