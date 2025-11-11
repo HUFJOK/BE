@@ -6,8 +6,10 @@ import com.likelion.hufjok.DTO.UserUpdateRequestDto;
 import com.likelion.hufjok.domain.User;
 import com.likelion.hufjok.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Optional;
 
@@ -75,11 +77,15 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    // 전공, 부전공, 이중전공 입력
+    // 전공, 2전공 입력
     @Transactional
     public OnboardingResponseDto createMajor(String email, OnboardingRequestDto dto) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다.", email));
+
+        if (user.getIsOnboardingCompleted()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 온보딩을 완료한 사용자입니다.");
+        }
 
         if (dto.getMajor() != null && !dto.getMajor().isBlank()) {
             user.setMajor(dto.getMajor());
@@ -89,19 +95,7 @@ public class UserService {
             user.setMinor(dto.getMinor());
         }
 
-        User savedUser = userRepository.save(user);
-
-        return OnboardingResponseDto.from(savedUser);
-    }
-
-    @Transactional
-    public OnboardingResponseDto createDoubleMajor(String email, OnboardingRequestDto dto) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다.", email));
-
-        if (dto.getMajor() != null && !dto.getMajor().isBlank()) {
-            user.setMajor(dto.getMajor());
-        }
+        user.setIsOnboardingCompleted(true);
 
         User savedUser = userRepository.save(user);
 

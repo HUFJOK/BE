@@ -27,6 +27,9 @@ public class User {
 
     private String providerId;
 
+    @Column(nullable = false)
+    private Boolean isOnboardingCompleted = false;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -34,8 +37,6 @@ public class User {
 
     @Column(nullable = false)
     private String major;
-
-    private String doubleMajor;
 
     private String minor;
 
