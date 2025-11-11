@@ -51,7 +51,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String providerId = (String) attrs.getOrDefault("sub", google.getName());
 
         // 로그인 시점에 저장/업데이트 확정
-        saveOrUpdate(email, providerId);
+        // saveOrUpdate(email, providerId);
 
         // ROLE_USER 권한 부여 + nameAttributeKey = "sub"
         return new DefaultOAuth2User(

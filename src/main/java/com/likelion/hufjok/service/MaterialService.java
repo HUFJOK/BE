@@ -174,11 +174,9 @@ public class MaterialService {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(page - 1, 10, sort);
         Page<Material> materialsPage;
-        if (keyword != null || year != null || semester != null) {
-            materialsPage = materialRepository.findFilteredMaterials(keyword, year, semester, pageable);
-        } else {
-            materialsPage = materialRepository.findAll(pageable);
-        }
+        // 삭제되지 않은 자료만 조회하도록 수정
+        materialsPage = materialRepository.findFilteredMaterials(keyword, year, semester, pageable);
+        
         List<MaterialSummaryDto> materialDtos = materialsPage.getContent().stream()
                 .map(MaterialSummaryDto::from)
                 .collect(Collectors.toList());
