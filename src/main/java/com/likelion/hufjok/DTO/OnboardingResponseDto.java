@@ -12,13 +12,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class OnboardingResponseDto {
     private String major;
-    private String doubleMajor;
     private String minor;
 
     public static OnboardingResponseDto from(User user) {
         return OnboardingResponseDto.builder()
                 .major(user.getMajor())
-                .doubleMajor(user.getDoubleMajor())
                 .minor(user.getMinor())
                 .build();
     }

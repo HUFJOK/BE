@@ -11,6 +11,5 @@ import lombok.ToString;
 @NoArgsConstructor
 public class OnboardingRequestDto {
     private String major;
-    private String doubleMajor;
     private String minor;
 }

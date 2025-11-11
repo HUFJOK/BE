@@ -16,6 +16,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.ForwardedHeaderFilter;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.List;
 
@@ -76,7 +77,12 @@ public class SecurityConfig {
                         .successHandler(customSuccessHandler)
                         .failureHandler(customFailureHandler)
                 )
-                .logout(lo -> lo.logoutSuccessUrl("/").permitAll());
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessHandler((request, response, authentication) ->{
+                            response.setStatus(HttpServletResponse.SC_OK);
+                        })
+                        .permitAll());
 
         return http.build();
     }

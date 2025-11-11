@@ -33,7 +33,7 @@ public class UserController {
     @PostMapping("/onboarding")
     @Operation(
             summary = "전공 정보 입력",
-            description = "온보딩에서 전공/이중전공/부전공을 입력합니다." ,
+            description = "온보딩에서 전공/이중전공 또는 부전공을 입력합니다." ,
             security = @SecurityRequirement(name = "Cookie Authentication")
     )
     public ResponseEntity<OnboardingResponseDto> getMajor(@AuthenticationPrincipal OAuth2User oAuth2User,
@@ -157,7 +157,7 @@ public class UserController {
     @PutMapping("/mypage/me")
     @Operation(
             summary = "기본 정보 변경",
-            description = "닉네임/전공/복수전공/부전공을 전달된 값으로 전체 교체합니다.",
+            description = "닉네임/전공/이중전공 또는 부전공을 전달된 값으로 전체 교체합니다.",
             security = @SecurityRequirement(name = "Cookie Authentication")
     )
     public ResponseEntity<UserResponseDto> updateMyInfo(
@@ -188,20 +188,17 @@ public class UserController {
 
         User updated = null;
 
-        if (majorType.toLowerCase(Locale.ROOT).equals("doublemajor")) {
-            updated = userService.clearDoubleMajor(email);
-        } else if (majorType.toLowerCase(Locale.ROOT).equals("minor")) {
+        if (majorType.toLowerCase(Locale.ROOT).equals("minor")) {
             updated = userService.clearMinor(email);
         } else {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(UserResponseDto.builder()
-                    .nickname(null)
-                    .major(null)
-                    .doubleMajor(null)
-                    .minor(null)
-                    .email(null)
-                    .errorMessage("유효하지 않은 전공 타입입니다: " + majorType)
-                    .build()
-            );
+                        .nickname(null)
+                        .major(null)
+                        .minor(null)
+                        .email(null)
+                        .errorMessage("유효하지 않은 전공 타입입니다: " + majorType)
+                        .build()
+                );
         }
         return ResponseEntity.ok(UserResponseDto.fromEntity(updated));
     }

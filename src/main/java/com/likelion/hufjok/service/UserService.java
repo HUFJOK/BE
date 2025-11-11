@@ -6,8 +6,6 @@ import com.likelion.hufjok.DTO.UserUpdateRequestDto;
 import com.likelion.hufjok.domain.User;
 import com.likelion.hufjok.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,7 +49,6 @@ public class UserService {
                 .build();
 
         User saved = userRepository.save(u);
-        pointService.awardSignupBonus(saved.getEmail());
 
         return saved;
     }
@@ -84,9 +81,6 @@ public class UserService {
         if (dto.getMajor() != null && !dto.getMajor().isBlank()) {
             user.setMajor(dto.getMajor());
         }
-        if (dto.getDoubleMajor() != null && !dto.getDoubleMajor().isBlank()) {
-            user.setDoubleMajor(dto.getDoubleMajor());
-        }
 
         if (dto.getMinor() != null && !dto.getMinor().isBlank()) {
             user.setMinor(dto.getMinor());
@@ -111,16 +105,8 @@ public class UserService {
         return OnboardingResponseDto.from(savedUser);
     }
 
-    // 이중 삭제
-    @Transactional
-    public User clearDoubleMajor(String email) {
-        User user = userRepository.findByEmail(email.toLowerCase())
-                .orElseThrow(() -> new NotFoundException("사용자를 찾을 수 없습니다.", email));
-        user.setDoubleMajor(null);
-        return userRepository.save(user);
-    }
 
-    // 부전 삭제
+    // 이중/부전 삭제
     @Transactional
     public User clearMinor(String email) {
         User user = userRepository.findByEmail(email.toLowerCase())
