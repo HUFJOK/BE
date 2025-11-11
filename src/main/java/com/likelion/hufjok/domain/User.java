@@ -27,7 +27,7 @@ public class User {
 
     private String providerId;
 
-    @Column(nullable = false)
+    @Column(name = "is_onboarding_completed", nullable = false)
     private Boolean isOnboardingCompleted = false;
 
     @Column(nullable = false, updatable = false)

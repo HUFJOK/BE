@@ -49,6 +49,7 @@ public class UserService {
                 .nickname(nickname)  // ★ NOT NULL 컬럼 채움
                 .points(500)  // 회원가입 보너스 포인트 직접 설정
                 .bonusAwarded(false)  // 아직 히스토리에 기록되지 않음
+                .isOnboardingCompleted(false)
                 .build();
 
         User saved = userRepository.saveAndFlush(u);
