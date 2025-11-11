@@ -34,8 +34,22 @@ public class ReviewController {
             summary = "리뷰 단건 조회",
             security = @SecurityRequirement(name = "Cookie Authentication")
     )
-    public ResponseEntity<ReviewGetResponseDto> getReview(@PathVariable Long reviewId) {
-        ReviewGetResponseDto responseDto = reviewService.findById(reviewId);
+    public ResponseEntity<ReviewGetResponseDto> getReview(
+            @PathVariable Long reviewId,
+            @AuthenticationPrincipal OAuth2User principal
+    ) {
+        Long currentUserId = null;
+        if (principal != null) {
+            String email = principal.getAttribute("email");
+            if (email != null) {
+                // UserService를 통해 ID 획득 (UserService는 이미 Controller에 주입되어 있다고 가정)
+                currentUserId = userService.findByEmail(email.toLowerCase())
+                        .map(User::getId)
+                        .orElse(null);
+            }
+        }
+
+        ReviewGetResponseDto responseDto = reviewService.findById(reviewId, currentUserId);
         return ResponseEntity.ok(responseDto);
     }
 

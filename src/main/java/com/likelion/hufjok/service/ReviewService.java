@@ -46,9 +46,10 @@ public class ReviewService {
         return ReviewCreateResponseDto.from(savedReview);
     }
 
-    public ReviewGetResponseDto findById(Long reviewId) {
+    public ReviewGetResponseDto findById(Long reviewId, Long currentUserId) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 후기를 찾을 수 없습니다. ID: " + reviewId));
+        boolean isAuthor = currentUserId != null && review.getUser().getId().equals(currentUserId);
         return new ReviewGetResponseDto(review, isAuthor);
     }
 
@@ -82,7 +83,8 @@ public class ReviewService {
 
         return reviews.stream()
                 .map( review-> {
-                    boolean isAuthor = review.getUser().getId().equals(currentUserId);
+                    boolean isAuthor = currentUserId != null && review.getUser().getId().equals(currentUserId);
+
                     return new ReviewGetResponseDto(review, isAuthor);
                 })
                 .collect(Collectors.toList());
