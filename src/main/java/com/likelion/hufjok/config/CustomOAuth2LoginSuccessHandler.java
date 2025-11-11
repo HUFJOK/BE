@@ -23,11 +23,12 @@ public class CustomOAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSucc
     private static final String ALLOWED_DOMAIN = "hufs.ac.kr";
     private final UserService userService;
 
-    @Value("${frontend.base-url}")
-    private String frontendBaseUrl;
+    private final String frontendBaseUrl;
 
+    public CustomOAuth2LoginSuccessHandler(
+            UserService userService,
+            @Value("${spring.frontend.url}") String frontendBaseUrl) {
 
-    public CustomOAuth2LoginSuccessHandler(UserService userService) {
         this.userService = userService;
     }
 
@@ -52,7 +53,7 @@ public class CustomOAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSucc
         userService.findByEmail(normEmail)
                 .orElseGet(() -> userService.saveFirstLogin(normEmail, providerId));
 
-        String targetUrl = frontendBaseUrl + "/loading";
+        String targetUrl = frontendBaseUrl;
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 
