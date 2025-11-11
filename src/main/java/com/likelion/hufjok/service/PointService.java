@@ -66,11 +66,37 @@ public class PointService {
     @Transactional(readOnly = true)
     public List<PointResponseDto> getPointHistory(String email) {
         String norm = email == null ? "" : email.toLowerCase();
+        
+        System.out.println("=== getPointHistory 호출 ===");
+        System.out.println("email: " + norm);
 
         User user = userRepository.findByEmail(norm)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + email));
 
+        System.out.println("userId: " + user.getId());
+        System.out.println("user.getPoints(): " + user.getPoints());
+
         List<PointHistory> histories = pointHistoryRepository.findByUserOrderByCreatedAtDesc(user);
+        
+        System.out.println("PointHistory 테이블에서 조회된 개수: " + histories.size());
+        
+        // 기존 유저를 위한 마이그레이션: 포인트는 있는데 히스토리가 없는 경우
+        if (histories.isEmpty() && user.getPoints() >= 500 && !user.isBonusAwarded()) {
+            System.out.println("⚠️ 기존 유저 감지: 회원가입 보너스 히스토리 생성");
+            // 트랜잭션을 새로 시작하기 위해 별도 메서드 호출
+            createSignupBonusHistoryForExistingUser(user);
+            // 다시 조회
+            histories = pointHistoryRepository.findByUserOrderByCreatedAtDesc(user);
+        }
+        
+        if (histories.isEmpty()) {
+            System.out.println("⚠️ PointHistory가 비어있습니다!");
+        } else {
+            for (PointHistory h : histories) {
+                System.out.println("- ID: " + h.getId() + ", amount: " + h.getAmountChange() + 
+                                 ", reason: " + h.getReason() + ", type: " + h.getType());
+            }
+        }
 
         // .stream(): 리스트를 순차적으로 하나씩 꺼내서 가공할 수 있게 해주는 자바함수형 API
         return histories.stream()
@@ -81,6 +107,24 @@ public class PointService {
                         .email(user.getEmail())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    // 기존 유저를 위한 회원가입 보너스 히스토리 생성
+    @Transactional
+    public void createSignupBonusHistoryForExistingUser(User user) {
+        PointHistory history = PointHistory.builder()
+                .user(user)
+                .amountChange(SIGNUP_BONUS_AMOUNT)
+                .amountAfter(user.getPoints())
+                .reason("회원가입 보상")
+                .type(PointHistory.PointType.SIGNUP_BONUS)
+                .build();
+        pointHistoryRepository.save(history);
+        
+        user.setBonusAwarded(true);
+        userRepository.save(user);
+        
+        System.out.println("✅ 기존 유저의 회원가입 보너스 히스토리 생성 완료");
     }
 
 
