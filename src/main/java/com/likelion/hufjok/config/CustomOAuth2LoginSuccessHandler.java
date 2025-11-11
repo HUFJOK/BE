@@ -28,7 +28,7 @@ public class CustomOAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSucc
 
     public CustomOAuth2LoginSuccessHandler(
             UserService userService,
-            @Value("${spring.frontend.url:https://hufjok.lion.it.kr}") String frontendBaseUrl) {
+            @Value("${spring.frontend.url:https://hufjok.vercel.app}") String frontendBaseUrl) {
 
         this.userService = userService;
         this.frontendBaseUrl = frontendBaseUrl;
