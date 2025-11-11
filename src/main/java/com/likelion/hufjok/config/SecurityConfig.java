@@ -92,15 +92,17 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
 
-        cfg.setAllowedOrigins(List.of(
+        cfg.setAllowedOriginPatterns(List.of(
                 "https://hufjok.lion.it.kr",
-                "http://localhost:5173"  // ★ 로컬 테스트용 주소
+                "https://*.lion.it.kr",   // 혹시 서브도메인 쓰면
+                "http://localhost:*",     // Vite/CRA 등 포트 유동
+                "http://127.0.0.1:*"
         ));
 
-        cfg.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
-        cfg.setAllowedHeaders(List.of("Authorization","Content-Type","Accept","Origin","X-Requested-With"));
+        cfg.addAllowedMethod(CorsConfiguration.ALL);
+        cfg.addAllowedHeader(CorsConfiguration.ALL);
         cfg.setExposedHeaders(List.of("Location"));
-        cfg.setAllowCredentials(true); // ★ 쿠키/세션 허용 (중요)
+        cfg.setAllowCredentials(true);
         cfg.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

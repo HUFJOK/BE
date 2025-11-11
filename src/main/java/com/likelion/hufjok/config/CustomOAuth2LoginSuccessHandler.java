@@ -11,12 +11,12 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Locale;
 
 @Component
 public class CustomOAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private static final String ALLOWED_DOMAIN = "hufs.ac.kr";
-    private static final String TARGET_AFTER_LOGIN = "/";
     private final UserService userService;
 
 
@@ -35,15 +35,27 @@ public class CustomOAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSucc
         String email = oAuth2User.getAttribute("email");
         String providerId = oAuth2User.getName();
 
-        if (email != null && email.endsWith("@" + ALLOWED_DOMAIN)) {
-            userService.findByEmail(email)
-                            .orElseGet(() -> userService.saveFirstLogin(email, providerId));
+        String normEmail = (email == null) ? "" : email.toLowerCase(Locale.ROOT);
+
+        if (normEmail.endsWith("@" + ALLOWED_DOMAIN)) {
+            userService.findByEmail(normEmail)
+                    .orElseGet(() -> userService.saveFirstLogin(normEmail, providerId));
+
             clearAuthenticationAttributes(request);
-            super.onAuthenticationSuccess(request, response, authentication);
+
+            String target = resolveFrontendTarget(request);
+            getRedirectStrategy().sendRedirect(request, response, target);
         } else {
-            // 허용 도메인 아니면 세션 제거 후 로그인 페이지로
             new SecurityContextLogoutHandler().logout(request, response, authentication);
             response.sendRedirect("/login?error=unauthorized_domain");
         }
+    }
+
+    private String resolveFrontendTarget(HttpServletRequest request) {
+        String host = request.getServerName();
+        if ("hufjok.lion.it.kr".equalsIgnoreCase(host)) {
+            return "https://hufjok.lion.it.kr/loading";
+        }
+        return "http://localhost:5173/loading";
     }
 }
