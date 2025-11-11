@@ -11,7 +11,7 @@ import lombok.Getter;
 public class UserResponseDto {
     private String nickname;
     private String major;
-    private String doubleMajor;
+
     private String minor;
     private String email;
     private String errorMessage;
@@ -21,7 +21,6 @@ public class UserResponseDto {
         return UserResponseDto.builder()
                 .nickname(user.getNickname())
                 .major(user.getMajor())
-                .doubleMajor(user.getDoubleMajor())
                 .minor(user.getMinor())
                 .email(user.getEmail())
                 .errorMessage(null)
