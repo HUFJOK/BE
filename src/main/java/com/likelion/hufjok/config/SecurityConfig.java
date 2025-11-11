@@ -93,15 +93,14 @@ public class SecurityConfig {
         CorsConfiguration cfg = new CorsConfiguration();
 
         cfg.setAllowedOriginPatterns(List.of(
+                "http://localhost:*",
+                "http://127.0.0.1:*",
                 "https://hufjok.lion.it.kr",
-                "https://*.lion.it.kr",   // 혹시 서브도메인 쓰면
-                "http://localhost:*",     // Vite/CRA 등 포트 유동
-                "http://127.0.0.1:*"
+                "https://*.lion.it.kr"
         ));
 
-        cfg.addAllowedMethod(CorsConfiguration.ALL);
         cfg.addAllowedHeader(CorsConfiguration.ALL);
-        cfg.setExposedHeaders(List.of("Location"));
+        cfg.addAllowedMethod(CorsConfiguration.ALL);
         cfg.setAllowCredentials(true);
         cfg.setMaxAge(3600L);
 
