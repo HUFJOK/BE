@@ -29,6 +29,7 @@ public class PointService {
     // 현재 내 포인트 조회
     @Transactional(readOnly = true)
     public int getUserPoints(String email) {
+        String norm = email == null ? "" : email.toLowerCase();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + email));
         return user.getPoints();
@@ -36,12 +37,13 @@ public class PointService {
 
     //회원가입 시 포인트 500 준거 히스토리에 기록
     public void awardSignupBonus(String email) {
+        String norm = email == null ? "" : email.toLowerCase();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + email));
 
         if (user.isBonusAwarded()) return ;
 
-        updatePoints(email, SIGNUP_BONUS_AMOUNT, "회원가입 보상", PointHistory.PointType.SIGNUP_BONUS);
+        updatePoints(norm, SIGNUP_BONUS_AMOUNT, "회원가입 보상", PointHistory.PointType.SIGNUP_BONUS);
 
         user.setBonusAwarded(true);
         userRepository.save(user);
@@ -51,7 +53,9 @@ public class PointService {
     // 포인트 전체 이력 조회
     @Transactional(readOnly = true)
     public List<PointResponseDto> getPointHistory(String email) {
-        User user = userRepository.findByEmail(email)
+        String norm = email == null ? "" : email.toLowerCase();
+
+        User user = userRepository.findByEmail(norm)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + email));
 
         List<PointHistory> histories = pointHistoryRepository.findByUserOrderByCreatedAtDesc(user);
@@ -70,7 +74,9 @@ public class PointService {
 
     // 포인트 적립, 차감 등 (업데이트)
     public void updatePoints(String email, int amount, String reason, PointHistory.PointType type) {
-        User user = userRepository.findByEmail(email)
+        String norm = email == null ? "" : email.toLowerCase();
+
+        User user = userRepository.findByEmail(norm)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + email));
 
         int delta = 0;

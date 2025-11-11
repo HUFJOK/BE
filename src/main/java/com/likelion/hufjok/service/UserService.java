@@ -49,7 +49,7 @@ public class UserService {
                 .build();
 
         User saved = userRepository.save(u);
-
+        pointService.awardSignupBonus(saved.getEmail());
         return saved;
     }
 

@@ -49,9 +49,10 @@ public class PointHistory {
 
         public int signedAmount(int amount) {
             return switch(this) {
-                case EARN, SIGNUP_BONUS -> amount;
-                case USE -> -amount;
+                case EARN, SIGNUP_BONUS -> Math.abs(amount);
+                case USE -> -Math.abs(amount);
                 case ADJUST ->  amount;
+
             };
         }
     }

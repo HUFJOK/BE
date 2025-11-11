@@ -50,8 +50,6 @@ public class UserController {
 
         OnboardingResponseDto responseDto = userService.createMajor(email, requestDto);
 
-        pointService.awardSignupBonus(email);
-
         return ResponseEntity.ok(responseDto);
     }
 
