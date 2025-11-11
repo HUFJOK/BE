@@ -38,13 +38,25 @@ public class PointService {
     //회원가입 시 포인트 500 준거 히스토리에 기록
     public void awardSignupBonus(String email) {
         String norm = email == null ? "" : email.toLowerCase();
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmail(norm)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + email));
 
-        if (user.isBonusAwarded()) return ;
+        // 이미 보너스 지급 이력이 있으면 중복 지급 방지
+        if (user.isBonusAwarded()) {
+            return;
+        }
 
-        updatePoints(norm, SIGNUP_BONUS_AMOUNT, "회원가입 보상", PointHistory.PointType.SIGNUP_BONUS);
+        // PointHistory 테이블에만 기록 (포인트는 이미 User 생성 시 500으로 설정됨)
+        PointHistory history = PointHistory.builder()
+                .user(user)
+                .amountChange(SIGNUP_BONUS_AMOUNT)
+                .amountAfter(user.getPoints())  // 현재 포인트 (이미 500)
+                .reason("회원가입 보상")
+                .type(PointHistory.PointType.SIGNUP_BONUS)
+                .build();
+        pointHistoryRepository.save(history);
 
+        // bonusAwarded 플래그 설정
         user.setBonusAwarded(true);
         userRepository.save(user);
     }
