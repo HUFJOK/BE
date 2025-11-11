@@ -34,6 +34,15 @@ public class PointService {
         return user.getPoints();
     }
 
+    //회원가입 시 포인트 500 준거 히스토리에 기록
+    public void awardSignupBonus(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + email));
+
+        updatePoints(email, SIGNUP_BONUS_AMOUNT, "회원가입 보상", PointHistory.PointType.SIGNUP_BONUS);
+    }
+
+
     // 포인트 전체 이력 조회
     @Transactional(readOnly = true)
     public List<PointResponseDto> getPointHistory(String email) {
@@ -53,15 +62,6 @@ public class PointService {
                 .collect(Collectors.toList());
     }
 
-    //회원가입 시 포인트 500 준거 히스토리에 기록
-    public void awardSignupBonus(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + email));
-
-        if (pointHistoryRepository.existsByUserAndType(user, PointHistory.PointType.SIGNUP_BONUS)) return ;
-
-        updatePoints(email, SIGNUP_BONUS_AMOUNT, "회원가입 보상", PointHistory.PointType.SIGNUP_BONUS);
-    }
 
     // 포인트 적립, 차감 등 (업데이트)
     public void updatePoints(String email, int amount, String reason, PointHistory.PointType type) {
