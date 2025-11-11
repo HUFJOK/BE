@@ -4,6 +4,7 @@ import com.likelion.hufjok.service.UserService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Value;
 import java.io.IOException;
 import java.util.Locale;
 
+@Slf4j
 @Component
 public class CustomOAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
@@ -33,7 +35,7 @@ public class CustomOAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSucc
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
-                                        Authentication authentication) throws IOException {
+                                        Authentication authentication) throws IOException, ServletException{
 
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         String email = oAuth2User.getAttribute("email");
@@ -52,7 +54,15 @@ public class CustomOAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSucc
 
         clearAuthenticationAttributes(request);
 
-        getRedirectStrategy().sendRedirect(request, response, frontendUrl);
+        super.onAuthenticationSuccess(request, response, authentication);
+    }
+
+    @Override
+    protected String determineTargetUrl(HttpServletRequest request,
+                                        HttpServletResponse response,
+                                        Authentication authentication) {
+        log.info("[LOGIN SUCCESS] redirect -> {}", frontendUrl);
+        return frontendUrl;
     }
 
 }
