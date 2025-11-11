@@ -39,7 +39,12 @@ public class PointService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + email));
 
+        if (user.isBonusAwarded()) return ;
+
         updatePoints(email, SIGNUP_BONUS_AMOUNT, "회원가입 보상", PointHistory.PointType.SIGNUP_BONUS);
+
+        user.setBonusAwarded(true);
+        userRepository.save(user);
     }
 
 
