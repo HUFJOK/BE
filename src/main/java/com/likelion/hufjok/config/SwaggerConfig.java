@@ -26,6 +26,7 @@ public class SwaggerConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .addServersItem(new Server().url("https://hufjok.lion.it.kr")) // Swagger 요청 주소 지정
+                .addServersItem(new Server().url("http://localhost:8080"))
                 .components(new Components()
                         .addSecuritySchemes("cookieAuth",
                                 new SecurityScheme()
