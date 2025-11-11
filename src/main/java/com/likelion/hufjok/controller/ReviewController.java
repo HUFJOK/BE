@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.file.AccessDeniedException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -36,6 +37,34 @@ public class ReviewController {
     public ResponseEntity<ReviewGetResponseDto> getReview(@PathVariable Long reviewId) {
         ReviewGetResponseDto responseDto = reviewService.findById(reviewId);
         return ResponseEntity.ok(responseDto);
+    }
+
+    @GetMapping("/materials/{materialId}/reviews")
+    @Operation(
+            summary = "자료별 리뷰 전체 조회",
+            description = "특정 자료 ID에 속한 모든 리뷰를 조회합니다. 응답에 작성자 여부(isAuthor) 포함.",
+            security = @SecurityRequirement(name = "Cookie Authentication")
+    )
+    public ResponseEntity<List<ReviewGetResponseDto>> getReviewsByMaterial(
+            @PathVariable Long materialId,
+            @AuthenticationPrincipal OAuth2User principal) {
+
+        Long currentUserId = null; // 기본값은 null (로그인하지 않은 사용자 또는 사용자 정보 없음)
+
+        if (principal != null) {
+            String email = principal.getAttribute("email");
+
+            // 💡 [수정] 이메일이 있을 경우에만, Optional 체인을 통해 ID를 가져오고, 없으면 null을 반환
+            if (email != null) {
+                currentUserId = userService.findByEmail(email.toLowerCase())
+                        .map(User::getId)
+                        .orElse(null);
+            }
+        }
+
+        List<ReviewGetResponseDto> responseList = reviewService.getReviewsByMaterialId(materialId, currentUserId);
+
+        return ResponseEntity.ok(responseList);
     }
 
     @PutMapping("/reviews/{reviewId}")

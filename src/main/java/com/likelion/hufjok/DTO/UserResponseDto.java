@@ -1,25 +1,21 @@
 package com.likelion.hufjok.DTO;
 
 import com.likelion.hufjok.domain.User;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 @Builder
+@AllArgsConstructor
 public class UserResponseDto {
     private String nickname;
     private String major;
     private String doubleMajor;
     private String minor;
     private String email;
+    private String errorMessage;
 
-    public UserResponseDto(String nickname, String major, String doubleMajor, String minor, String email) {
-        this.nickname = nickname;
-        this.major = major;
-        this.doubleMajor = doubleMajor;
-        this.minor = minor;
-        this.email = email;
-    }
 
     public static UserResponseDto fromEntity(User user) {
         return UserResponseDto.builder()
@@ -28,6 +24,7 @@ public class UserResponseDto {
                 .doubleMajor(user.getDoubleMajor())
                 .minor(user.getMinor())
                 .email(user.getEmail())
+                .errorMessage(null)
                 .build();
     }
 }

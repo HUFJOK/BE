@@ -177,27 +177,45 @@ public class UserController {
 
 
 
-    @DeleteMapping("mypage/me/doubleMajor")
-    @Operation(summary = "이중전공 삭제", security = @SecurityRequirement(name = "Cookie Authentication"))
-    public ResponseEntity<UserResponseDto> deleteDoubleMajor(@AuthenticationPrincipal OAuth2User principal) {
+    @DeleteMapping("mypage/me/{majorType}")
+    @Operation(summary = "이중전공/부전공 삭제",
+            description = "majorType에 해당하는 전공 정보 삭제합니다. (majorType: doubleMajor 또는 minor)",
+            security = @SecurityRequirement(name = "Cookie Authentication"))
+    public ResponseEntity<UserResponseDto> deleteMajor(@AuthenticationPrincipal OAuth2User principal, @PathVariable String majorType) {
         if (principal == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         String email = principal.getAttribute("email");
         if (email == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 
-        User updated = userService.clearDoubleMajor(email);
+        User updated = null;
+
+        if (majorType.toLowerCase(Locale.ROOT).equals("doublemajor")) {
+            updated = userService.clearDoubleMajor(email);
+        } else if (majorType.toLowerCase(Locale.ROOT).equals("minor")) {
+            updated = userService.clearMinor(email);
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(UserResponseDto.builder()
+                    .nickname(null)
+                    .major(null)
+                    .doubleMajor(null)
+                    .minor(null)
+                    .email(null)
+                    .errorMessage("유효하지 않은 전공 타입입니다: " + majorType)
+                    .build()
+            );
+        }
         return ResponseEntity.ok(UserResponseDto.fromEntity(updated));
     }
 
-    @DeleteMapping("mypage/me/minor")
-    @Operation(summary = "부전공 삭제", security = @SecurityRequirement(name = "Cookie Authentication"))
-    public ResponseEntity<UserResponseDto> deleteMinor(@AuthenticationPrincipal OAuth2User principal) {
-        if (principal == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        String email = principal.getAttribute("email");
-        if (email == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-
-        User updated = userService.clearMinor(email);
-        return ResponseEntity.ok(UserResponseDto.fromEntity(updated));
-    }
+//    @DeleteMapping("mypage/me/minor")
+//    @Operation(summary = "부전공 삭제", security = @SecurityRequirement(name = "Cookie Authentication"))
+//    public ResponseEntity<UserResponseDto> deleteMinor(@AuthenticationPrincipal OAuth2User principal) {
+//        if (principal == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+//        String email = principal.getAttribute("email");
+//        if (email == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+//
+//        User updated = userService.clearMinor(email);
+//        return ResponseEntity.ok(UserResponseDto.fromEntity(updated));
+//    }
 
 }
 

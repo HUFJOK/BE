@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.file.AccessDeniedException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -47,7 +49,7 @@ public class ReviewService {
     public ReviewGetResponseDto findById(Long reviewId) {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(() -> new EntityNotFoundException("해당 후기를 찾을 수 없습니다. ID: " + reviewId));
-        return new ReviewGetResponseDto(review);
+        return new ReviewGetResponseDto(review, isAuthor);
     }
 
     @Transactional
@@ -73,5 +75,16 @@ public class ReviewService {
             throw new AccessDeniedException("후기를 삭제할 권한이 없습니다.");
         }
         reviewRepository.delete(review);
+    }
+
+    public List<ReviewGetResponseDto> getReviewsByMaterialId(Long materialId, Long currentUserId) {
+        List<Review> reviews = reviewRepository.findByMaterialIdOrderByCreatedAtDesc(materialId);
+
+        return reviews.stream()
+                .map( review-> {
+                    boolean isAuthor = review.getUser().getId().equals(currentUserId);
+                    return new ReviewGetResponseDto(review, isAuthor);
+                })
+                .collect(Collectors.toList());
     }
 }

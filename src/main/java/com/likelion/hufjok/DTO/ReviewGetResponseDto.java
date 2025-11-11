@@ -8,15 +8,19 @@ import java.time.LocalDateTime;
 public class ReviewGetResponseDto {
     private final Long reviewId;
     private final String authorNickname;
+    private final String reviewerEmail;
     private final int rating;
     private final String comment;
     private final LocalDateTime createdAt;
+    private final boolean isAuthor;
 
-    public ReviewGetResponseDto(Review review) {
+    public ReviewGetResponseDto(Review review, boolean isAuthor) {
         this.reviewId = review.getId();
         this.authorNickname = review.getUser().getNickname();
+        this.reviewerEmail = review.getUser().getEmail();
         this.rating = review.getRating();
         this.comment = review.getComment();
         this.createdAt = review.getCreatedAt();
+        this.isAuthor = isAuthor();
     }
 }
