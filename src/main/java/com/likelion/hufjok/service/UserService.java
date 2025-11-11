@@ -70,7 +70,6 @@ public class UserService {
             user.setMajor(req.getMajor());
         }
 
-        if (req.getDoubleMajor() != null) user.setDoubleMajor(req.getDoubleMajor());
         if (req.getMinor() != null)      user.setMinor(req.getMinor());
 
         return userRepository.save(user);

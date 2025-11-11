@@ -206,6 +206,7 @@ public class UserController {
                         .minor(null)
                         .email(null)
                         .errorMessage("유효하지 않은 전공 타입입니다: " + majorType)
+                        .isOnboarding(false)
                         .build()
                 );
         }
