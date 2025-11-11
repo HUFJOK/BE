@@ -86,19 +86,21 @@ public class SecurityConfig {
 
         return http.build();
     }
+
+    // 💡 [수정] 중복된 메소드를 하나로 통합했습니다. (로컬 호스트 포함)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
-        // 배포 도메인만 허용 (https)
-        cfg.setAllowedOrigins(List.of("https://hufjok.lion.it.kr"));
-        // 프론트/스웨거에서 쓰는 메소드/헤더 허용
+
+        cfg.setAllowedOrigins(List.of(
+                "https://hufjok.lion.it.kr",
+                "http://localhost:5173"  // ★ 로컬 테스트용 주소
+        ));
+
         cfg.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
         cfg.setAllowedHeaders(List.of("Authorization","Content-Type","Accept","Origin","X-Requested-With"));
-        // 응답에서 노출할 헤더(필요시)
         cfg.setExposedHeaders(List.of("Location"));
-        // 세션/쿠키 사용 시 true
-        cfg.setAllowCredentials(true);
-        // preflight 캐시
+        cfg.setAllowCredentials(true); // ★ 쿠키/세션 허용 (중요)
         cfg.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
