@@ -13,7 +13,6 @@ public class UserResponseDto {
     private String major;
     private String minor;
     private String email;
-    private String errorMessage;
     private boolean isOnboarding;
 
 
@@ -25,7 +24,6 @@ public class UserResponseDto {
                 .major(user.getMajor())
                 .minor(user.getMinor())
                 .email(user.getEmail())
-                .errorMessage(null)
                 .isOnboarding(isOnboardingComplete)
                 .build();
     }
