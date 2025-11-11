@@ -9,11 +9,13 @@ import org.springframework.data.repository.query.Param;
 
 public interface MaterialRepository extends JpaRepository<Material, Long> {
 
-    @Query("SELECT m FROM Material m " +
-            "WHERE m.isDeleted = FALSE " +
-            "AND (:keyword IS NULL OR m.title LIKE %:keyword% OR m.courseName LIKE %:keyword% OR m.professorName LIKE %:keyword%) " +
-            "AND (:year IS NULL OR m.year = :year) " +
-            "AND (:semester IS NULL OR m.semester = :semester)")
+    @Query("""
+        SELECT m FROM Material m
+        WHERE (m.isDeleted = FALSE OR m.isDeleted IS NULL)
+        AND (:keyword IS NULL OR m.title LIKE %:keyword% OR m.courseName LIKE %:keyword% OR m.professorName LIKE %:keyword%)
+        AND (:year IS NULL OR m.year = :year)
+        AND (:semester IS NULL OR m.semester = :semester)
+    """)
     Page<Material> findFilteredMaterials(
             @Param("keyword") String keyword,
             @Param("year") Integer year,
@@ -21,8 +23,9 @@ public interface MaterialRepository extends JpaRepository<Material, Long> {
             Pageable pageable
     );
 
-    @Query("SELECT m FROM Material m WHERE m.user.id = :userId AND m.isDeleted = FALSE")
+    @Query("SELECT m FROM Material m WHERE m.user.id = :userId AND (m.isDeleted = FALSE OR m.isDeleted IS NULL)")
     Page<Material> findByUserIdAndIsDeletedFalse(@Param("userId") Long userId, Pageable pageable);
 
+    @Query("SELECT m FROM Material m WHERE (m.isDeleted = FALSE OR m.isDeleted IS NULL)")
     Page<Material> findByIsDeletedFalse(Pageable pageable);
 }

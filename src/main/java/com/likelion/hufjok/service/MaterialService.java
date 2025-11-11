@@ -107,6 +107,7 @@ public class MaterialService {
                 .description(metadata.description())
                 .grade(metadata.grade() != null ? metadata.grade() : "미정")
                 .user(user)
+                .isDeleted(false) // builder로 null 안들어가게
                 .build();
         Material savedMaterial = materialRepository.save(material);
 
