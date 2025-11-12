@@ -22,6 +22,8 @@ public class MaterialGetResponseDto {
     private Integer semester;
     private String authorName;
     private Long authorId;
+    private String grade;
+    private String major;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
@@ -44,6 +46,8 @@ public class MaterialGetResponseDto {
                 .semester(material.getSemester())
                 .authorName(material.getUser().getNickname())
                 .authorId(material.getUser().getId())
+                .grade(material.getGrade())
+                .major(material.getMajor())
                 .createdAt(material.getCreatedAt())
                 .updatedAt(material.getUpdatedAt())
                 .reviewCount(material.getReviews() != null ? material.getReviews().size() : 0)

@@ -46,6 +46,8 @@ public class Material {
     @Column(nullable = true)
     private String grade;
 
+    private String major;
+
     @Column
     @Builder.Default
     private Boolean isDeleted = false;
