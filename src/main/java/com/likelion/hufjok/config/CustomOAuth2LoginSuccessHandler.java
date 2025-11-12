@@ -28,7 +28,7 @@ public class CustomOAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSucc
 
     public CustomOAuth2LoginSuccessHandler(
             UserService userService,
-            @Value("${spring.frontend.url}") String frontendBaseUrl) {
+            @Value("${spring.frontend.url:https://hufjok.vercel.app}") String frontendBaseUrl) {
 
         this.userService = userService;
         this.frontendBaseUrl = frontendBaseUrl;
@@ -55,16 +55,9 @@ public class CustomOAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSucc
         userService.findByEmail(normEmail)
                 .orElseGet(() -> userService.saveFirstLogin(normEmail, providerId));
 
-        String targetUrl = frontendBaseUrl;
+        String targetUrl = frontendBaseUrl + "/loading";
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 
-    @Override
-    protected String determineTargetUrl(HttpServletRequest request,
-                                        HttpServletResponse response,
-                                        Authentication authentication) {
-        log.info("[LOGIN SUCCESS] redirect -> {}", frontendBaseUrl);
-        return frontendBaseUrl;
-    }
 
 }

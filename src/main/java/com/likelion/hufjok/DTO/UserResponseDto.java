@@ -11,20 +11,20 @@ import lombok.Getter;
 public class UserResponseDto {
     private String nickname;
     private String major;
-    private String doubleMajor;
     private String minor;
     private String email;
-    private String errorMessage;
+    private boolean isOnboarding;
 
 
     public static UserResponseDto fromEntity(User user) {
+        boolean isOnboardingComplete = (user.getMajor() != null && !user.getMajor().equals("미입력"));
+
         return UserResponseDto.builder()
                 .nickname(user.getNickname())
                 .major(user.getMajor())
-                .doubleMajor(user.getDoubleMajor())
                 .minor(user.getMinor())
                 .email(user.getEmail())
-                .errorMessage(null)
+                .isOnboarding(isOnboardingComplete)
                 .build();
     }
 }

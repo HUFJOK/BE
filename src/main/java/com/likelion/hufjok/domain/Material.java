@@ -46,7 +46,10 @@ public class Material {
     @Column(nullable = true)
     private String grade;
 
-    @Column(columnDefinition = "boolean default false")
+    private String major;
+
+    @Column
+    @Builder.Default
     private Boolean isDeleted = false;
 
     @Column(nullable = false, updatable = false) // updatable = false 추가
@@ -55,7 +58,6 @@ public class Material {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-
 
 
     @OneToMany(mappedBy = "material", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -82,6 +84,7 @@ public class Material {
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+        if (this.isDeleted == null) this.isDeleted = false;
     }
 
     @PreUpdate

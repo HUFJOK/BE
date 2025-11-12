@@ -8,6 +8,7 @@ public record ReviewCreateResponseDto(
         String authorNickname,
         Integer rating,
         String comment,
+        int reviewCount,
         LocalDateTime createdAt
 ) {
     public static ReviewCreateResponseDto from(Review review) {
@@ -16,6 +17,7 @@ public record ReviewCreateResponseDto(
                 review.getUser().getNickname(), // User 엔티티에서 닉네임 가져오기
                 review.getRating(),
                 review.getComment(),
+                review.getReviewCount(),
                 review.getCreatedAt()
         );
     }

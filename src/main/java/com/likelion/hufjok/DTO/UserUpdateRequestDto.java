@@ -14,6 +14,5 @@ public class UserUpdateRequestDto {
 
     private String nickname;
     private String major;
-    private String doubleMajor;
     private String minor;
 }

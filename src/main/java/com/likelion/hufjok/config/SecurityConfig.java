@@ -96,7 +96,8 @@ public class SecurityConfig {
                 "http://localhost:*",
                 "http://127.0.0.1:*",
                 "https://hufjok.lion.it.kr",
-                "https://*.lion.it.kr"
+                "https://*.lion.it.kr",
+                "https://hufjok.vercel.app"
         ));
 
         cfg.addAllowedHeader(CorsConfiguration.ALL);

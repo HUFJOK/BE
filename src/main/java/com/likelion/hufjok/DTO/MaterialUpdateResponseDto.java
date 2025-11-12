@@ -9,8 +9,10 @@ public record MaterialUpdateResponseDto(
         String description,
         String professorName,
         String courseName,
-        int year,
-        int semester,
+        Integer year,
+        Integer semester,
+        String courseDivision,
+        String grade,
         LocalDateTime updatedAt
 ) {
     public static MaterialUpdateResponseDto from(Material material) {
@@ -22,6 +24,8 @@ public record MaterialUpdateResponseDto(
                 material.getCourseName(),
                 material.getYear(),
                 material.getSemester(),
+                material.getCourseDivision(),
+                material.getGrade(),
                 material.getUpdatedAt()
         );
     }

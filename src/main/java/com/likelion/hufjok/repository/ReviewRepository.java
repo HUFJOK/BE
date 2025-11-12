@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface ReviewRepository extends JpaRepository<Review, Long> {
     List<Review> findByMaterialIdOrderByCreatedAtDesc(Long materialId);
+
+    long countByMaterialId(Long materialId);
 }

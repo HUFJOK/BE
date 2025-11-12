@@ -107,6 +107,7 @@ public class MaterialService {
                 .description(metadata.description())
                 .grade(metadata.grade() != null ? metadata.grade() : "미정")
                 .user(user)
+                .isDeleted(false) // builder로 null 안들어가게
                 .build();
         Material savedMaterial = materialRepository.save(material);
 
@@ -179,12 +180,17 @@ public class MaterialService {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(page - 1, 10, sort);
         Page<Material> materialsPage;
-        // 삭제되지 않은 자료만 조회하도록 수정
-        materialsPage = materialRepository.findFilteredMaterials(keyword, year, semester, pageable);
+
+        if (keyword != null || year != null || semester != null) {
+            materialsPage = materialRepository.findFilteredMaterials(keyword, year, semester, pageable);
+        } else {
+            materialsPage = materialRepository.findByIsDeletedFalse(pageable);
+        }
         
         List<MaterialSummaryDto> materialDtos = materialsPage.getContent().stream()
                 .map(MaterialSummaryDto::from)
                 .collect(Collectors.toList());
+
         PageInfo pageInfo = new PageInfo(
                 materialsPage.getNumber() + 1,
                 materialsPage.getTotalPages(),
@@ -201,8 +207,31 @@ public class MaterialService {
         if (!material.getUser().getId().equals(userId)) {
             throw new RuntimeException("수정할 권한이 없습니다.");
         }
-        material.setTitle(request.title());
-        material.setDescription(request.description());
+        if (request.title() != null) {
+            material.setTitle(request.title());
+        }
+        if (request.description() != null) {
+            material.setDescription(request.description());
+        }
+        if (request.professorName() != null) {
+            material.setProfessorName(request.professorName());
+        }
+        if (request.courseName() != null) {
+            material.setCourseName(request.courseName());
+        }
+        if (request.year() != null) {
+            material.setYear(request.year());
+        }
+        if (request.semester() != null) {
+            material.setSemester(request.semester());
+        }
+        if (request.courseDivision() != null) {
+            material.setCourseDivision(request.courseDivision());
+        }
+        if (request.grade() != null) {
+            material.setGrade(request.grade());
+        }
+
         return MaterialUpdateResponseDto.from(material);
     }
 
