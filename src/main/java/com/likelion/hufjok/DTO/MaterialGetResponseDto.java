@@ -23,7 +23,7 @@ public class MaterialGetResponseDto {
     private String authorName;
     private Long authorId;
     private String grade;
-    private String major;
+    private String courseDivision;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
@@ -65,7 +65,7 @@ public class MaterialGetResponseDto {
                 .authorName(material.getUser().getNickname())
                 .authorId(material.getUser().getId())
                 .grade(material.getGrade())
-                .major(material.getMajor())
+                .courseDivision(material.getCourseDivision())
                 .createdAt(material.getCreatedAt())
                 .updatedAt(material.getUpdatedAt())
                 .avgRating(avgRating)
