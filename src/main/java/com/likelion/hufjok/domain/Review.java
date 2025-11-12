@@ -21,6 +21,9 @@ public class Review {
 
     private String comment;
 
+    @Builder.Default
+    private int reviewCount = 0;
+
     @Column(nullable = false, updatable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -37,4 +40,9 @@ public class Review {
     @JoinColumn(name = "material_id", nullable = false)
     @JsonIgnore
     private Material material;
+
+
+    public void increaseReviewCount() {
+        this.reviewCount++;
+    }
 }
