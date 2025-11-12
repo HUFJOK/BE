@@ -207,8 +207,31 @@ public class MaterialService {
         if (!material.getUser().getId().equals(userId)) {
             throw new RuntimeException("수정할 권한이 없습니다.");
         }
-        material.setTitle(request.title());
-        material.setDescription(request.description());
+        if (request.title() != null) {
+            material.setTitle(request.title());
+        }
+        if (request.description() != null) {
+            material.setDescription(request.description());
+        }
+        if (request.professorName() != null) {
+            material.setProfessorName(request.professorName());
+        }
+        if (request.courseName() != null) {
+            material.setCourseName(request.courseName());
+        }
+        if (request.year() != null) {
+            material.setYear(request.year());
+        }
+        if (request.semester() != null) {
+            material.setSemester(request.semester());
+        }
+        if (request.courseDivision() != null) {
+            material.setCourseDivision(request.courseDivision());
+        }
+        if (request.grade() != null) {
+            material.setGrade(request.grade());
+        }
+
         return MaterialUpdateResponseDto.from(material);
     }
 

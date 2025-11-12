@@ -95,10 +95,10 @@ public class MaterialController {
 
         // ---- 필수 필드 검증 (null → DB 에러 방지) ----
         if (metadata.courseName() == null || metadata.courseName().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "courseDivision은 필수입니다.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "courseName은 필수입니다.");
         }
         if (metadata.courseDivision() == null || metadata.courseDivision().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "courseName은 필수입니다.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "courseDivision은 필수입니다.");
         }
         if (metadata.title() == null || metadata.title().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "title은 필수입니다.");
