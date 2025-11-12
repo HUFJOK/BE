@@ -33,9 +33,27 @@ public class MaterialGetResponseDto {
 
     private Double avgRating;
     private Integer reviewCount;
+    private Integer downloadCount;
     private List<AttachmentDto> attachments;
 
     public static MaterialGetResponseDto fromEntity(Material material) {
+        // 리뷰 개수 계산
+        int reviewCount = material.getReviews() != null ? material.getReviews().size() : 0;
+        
+        // 다운로드 수 계산
+        int downloadCount = material.getDownloads() != null ? material.getDownloads().size() : 0;
+        
+        // 평균 평점 계산
+        Double avgRating = null;
+        if (material.getReviews() != null && !material.getReviews().isEmpty()) {
+            avgRating = material.getReviews().stream()
+                    .mapToInt(review -> review.getRating())
+                    .average()
+                    .orElse(0.0);
+            // 소수점 두 자리까지 반올림
+            avgRating = Math.round(avgRating * 100.0) / 100.0;
+        }
+        
         return MaterialGetResponseDto.builder()
                 .materialId(material.getId())
                 .title(material.getTitle())
@@ -50,7 +68,9 @@ public class MaterialGetResponseDto {
                 .major(material.getMajor())
                 .createdAt(material.getCreatedAt())
                 .updatedAt(material.getUpdatedAt())
-                .reviewCount(material.getReviews() != null ? material.getReviews().size() : 0)
+                .avgRating(avgRating)
+                .reviewCount(reviewCount)
+                .downloadCount(downloadCount)
                 .attachments(material.getAttachments() != null
                         ? material.getAttachments().stream()
                         .map(attachment -> AttachmentDto.builder()
