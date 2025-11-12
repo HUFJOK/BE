@@ -23,6 +23,7 @@ public class MaterialGetResponseDto {
     private String authorName;
     private Long authorId;
     private String grade;
+    private String major;
     private String courseDivision;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -64,6 +65,7 @@ public class MaterialGetResponseDto {
                 .semester(material.getSemester())
                 .authorName(material.getUser().getNickname())
                 .authorId(material.getUser().getId())
+                .major(material.getMajor())
                 .grade(material.getGrade())
                 .courseDivision(material.getCourseDivision())
                 .createdAt(material.getCreatedAt())

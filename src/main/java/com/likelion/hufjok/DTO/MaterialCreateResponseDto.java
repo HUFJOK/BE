@@ -19,6 +19,7 @@ public class MaterialCreateResponseDto {
     private int semester;
     private LocalDateTime createdAt;
     private String courseDivision;
+    private String major;
     private String grade;
 
     private Integer earnedPoints;
@@ -35,6 +36,7 @@ public class MaterialCreateResponseDto {
                 .year(material.getYear())
                 .semester(material.getSemester())
                 .courseDivision(material.getCourseDivision())
+                .major(material.getMajor())
                 .grade(material.getGrade())
                 .createdAt(material.getCreatedAt())
                 .earnedPoints(200)

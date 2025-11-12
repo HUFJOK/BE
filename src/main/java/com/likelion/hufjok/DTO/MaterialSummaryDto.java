@@ -11,6 +11,7 @@ public record MaterialSummaryDto(
         Integer year,
         String grade,
         Integer semester,
+        String major,
         String courseDivision,
         String professorName
 ) {
@@ -21,6 +22,7 @@ public record MaterialSummaryDto(
                 material.getYear(),
                 material.getGrade(),
                 material.getSemester(),
+                material.getMajor(),
                 material.getCourseDivision(),
                 material.getProfessorName()
         );

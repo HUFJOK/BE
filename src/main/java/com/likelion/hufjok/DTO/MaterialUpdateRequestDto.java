@@ -7,6 +7,7 @@ public record MaterialUpdateRequestDto(
         String courseName,
         Integer year,
         Integer semester,
+        String major,
         String courseDivision,
         String grade
 ) {}

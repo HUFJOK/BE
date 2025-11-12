@@ -12,5 +12,6 @@ public record MaterialCreateRequestDto(
         Integer year,
         Integer semester,
         String courseDivision,
+        String major,
         String grade
 ) {}

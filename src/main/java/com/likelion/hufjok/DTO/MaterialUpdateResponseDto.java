@@ -11,6 +11,7 @@ public record MaterialUpdateResponseDto(
         String courseName,
         Integer year,
         Integer semester,
+        String major,
         String courseDivision,
         String grade,
         LocalDateTime updatedAt
@@ -24,6 +25,7 @@ public record MaterialUpdateResponseDto(
                 material.getCourseName(),
                 material.getYear(),
                 material.getSemester(),
+                material.getMajor(),
                 material.getCourseDivision(),
                 material.getGrade(),
                 material.getUpdatedAt()

@@ -46,6 +46,7 @@ public class Material {
     @Column(nullable = true)
     private String grade;
 
+    @Column(nullable = true)
     private String major;
 
     @Column
