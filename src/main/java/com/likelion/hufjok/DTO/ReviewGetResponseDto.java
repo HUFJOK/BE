@@ -12,7 +12,6 @@ public class ReviewGetResponseDto {
     private final int rating;
     private final String comment;
     private final LocalDateTime createdAt;
-    private final int reviewCount;
     private final boolean isAuthor;
 
     public ReviewGetResponseDto(Review review, boolean isAuthor) {
@@ -22,7 +21,6 @@ public class ReviewGetResponseDto {
         this.rating = review.getRating();
         this.comment = review.getComment();
         this.createdAt = review.getCreatedAt();
-        this.reviewCount = review.getReviewCount();
         this.isAuthor = isAuthor;
     }
 }

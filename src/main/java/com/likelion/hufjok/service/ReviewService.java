@@ -34,17 +34,13 @@ public class ReviewService {
         Material material = materialRepository.findById(materialId)
                 .orElseThrow(() -> new IllegalArgumentException("Material not found"));
 
-        long existingCount = reviewRepository.countByMaterialId(materialId);
-
         Review review = Review.builder()
                 .rating(request.getRating())
                 .comment(request.getComment())
                 .user(user)
                 .material(material)
-                .reviewCount((int) existingCount + 1)
                 .build();
 
-        review.increaseReviewCount(); // 현재 리뷰 객체의 count +1
         Review savedReview = reviewRepository.save(review);
 
         return ReviewCreateResponseDto.from(savedReview);
