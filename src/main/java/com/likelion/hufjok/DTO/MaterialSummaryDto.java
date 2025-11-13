@@ -13,9 +13,20 @@ public record MaterialSummaryDto(
         Integer semester,
         String major,
         String courseDivision,
-        String professorName
+        String professorName,
+
+        Integer reviewCount,
+        Integer downloadCount
 ) {
     public static MaterialSummaryDto from(Material material) {
+        int reviewCount = material.getReviews() != null
+                ? material.getReviews().size()
+                : 0;
+
+        // 다운로드 수 계산
+        int downloadCount = material.getDownloads() != null
+                ? material.getDownloads().size()
+                : 0;
         return new MaterialSummaryDto(
                 material.getId(),
                 material.getTitle(),
@@ -24,7 +35,9 @@ public record MaterialSummaryDto(
                 material.getSemester(),
                 material.getMajor(),
                 material.getCourseDivision(),
-                material.getProfessorName()
+                material.getProfessorName(),
+                reviewCount,
+                downloadCount
         );
     }
 }
