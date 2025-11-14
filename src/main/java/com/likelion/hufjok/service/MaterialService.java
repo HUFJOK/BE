@@ -105,6 +105,7 @@ public class MaterialService {
                 .year(metadata.year())
                 .semester(metadata.semester())
                 .description(metadata.description())
+                .major(metadata.major())
                 .grade(metadata.grade() != null ? metadata.grade() : "미정")
                 .user(user)
                 .isDeleted(false) // builder로 null 안들어가게
@@ -230,6 +231,9 @@ public class MaterialService {
         }
         if (request.grade() != null) {
             material.setGrade(request.grade());
+        }
+        if (request.major() != null) {
+            material.setMajor(request.major());
         }
 
         return MaterialUpdateResponseDto.from(material);
