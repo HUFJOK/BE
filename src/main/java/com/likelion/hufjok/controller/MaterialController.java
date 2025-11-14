@@ -187,7 +187,7 @@ public class MaterialController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{materialId}/attachments/{attachmentId}/purchase")
+    @PostMapping("/{materialId}/purchase")
     @Operation(
             summary = "자료 구매",
             description = "자료를 구매합니다. 본인이 업로드한 자료인 경우 포인트가 차감되지 않습니다."
@@ -200,7 +200,6 @@ public class MaterialController {
     })
     public ResponseEntity<?> purchaseMaterial(
             @PathVariable Long materialId,
-            @PathVariable Long attachmentId,
             @AuthenticationPrincipal OAuth2User principal
     ) {
         if (principal == null) {
