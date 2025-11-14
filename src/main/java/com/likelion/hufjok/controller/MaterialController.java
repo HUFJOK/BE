@@ -213,7 +213,7 @@ public class MaterialController {
                         HttpStatus.UNAUTHORIZED, "등록되지 않은 사용자입니다."));
 
         try {
-            materialService.purchaseMaterial(materialId, attachmentId, userId);
+            materialService.purchaseMaterial(materialId, userId);
             return ResponseEntity.ok(Map.of("message", "구매가 완료되었습니다."));
         } catch (NotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));

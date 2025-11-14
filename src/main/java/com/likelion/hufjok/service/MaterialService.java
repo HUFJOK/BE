@@ -259,17 +259,11 @@ public class MaterialService {
     }
 
     @Transactional
-    public void purchaseMaterial(Long materialId, Long attachmentId, Long userId) {
+    public void purchaseMaterial(Long materialId, Long userId) {
 
         Material material = materialRepository.findById(materialId)
                 .orElseThrow(() -> new NotFoundException("Material", materialId));
 
-        Attachment attachment = attachmentRepository.findById(attachmentId)
-                .orElseThrow(() -> new NotFoundException("Attachment", attachmentId));
-
-        if (!attachment.getMaterial().getId().equals(materialId)) {
-            throw new IllegalArgumentException("해당 자료에 속한 파일이 아닙니다.");
-        }
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User", userId));
