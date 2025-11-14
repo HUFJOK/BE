@@ -259,6 +259,54 @@ public class MaterialService {
     }
 
     @Transactional
+    public void purchaseMaterial(Long materialId, Long attachmentId, Long userId) {
+
+        Material material = materialRepository.findById(materialId)
+                .orElseThrow(() -> new NotFoundException("Material", materialId));
+
+        Attachment attachment = attachmentRepository.findById(attachmentId)
+                .orElseThrow(() -> new NotFoundException("Attachment", attachmentId));
+
+        if (!attachment.getMaterial().getId().equals(materialId)) {
+            throw new IllegalArgumentException("해당 자료에 속한 파일이 아닙니다.");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User", userId));
+
+        // 본인 자료면 포인트 차감/구매내역 저장 필요 없음
+        if (material.getUser().getId().equals(userId)) {
+            return;
+        }
+
+        // 이미 구매한 자료인지 확인
+        boolean alreadyPurchased = userMaterialRepository.existsByUserAndMaterial(user, material);
+        if (alreadyPurchased) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 구매한 자료입니다.");
+        }
+
+        int currentPoints = pointService.getUserPoints(user.getEmail());
+        if (currentPoints < DOWNLOAD_COST) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "포인트 잔액이 부족합니다. (현재 잔액: " + currentPoints + ", 필요 포인트: " + DOWNLOAD_COST + ")");
+        }
+
+        // 포인트 차감
+        pointService.updatePoints(
+                user.getEmail(),
+                DOWNLOAD_COST,
+                "자료 구매: " + material.getTitle(),
+                PointHistory.PointType.USE
+        );
+
+        // 구매 내역 저장
+        UserMaterial purchaseRecord = new UserMaterial();
+        purchaseRecord.setUser(user);
+        purchaseRecord.setMaterial(material);
+        userMaterialRepository.save(purchaseRecord);
+    }
+
+    @Transactional
     public AttachmentDownloadDto downloadMaterial(Long materialId, Long attachmentId, Long userId) throws IOException {
 
         Material material = materialRepository.findById(materialId)
@@ -274,6 +322,13 @@ public class MaterialService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User", userId));
 
+        if (!material.getUser().getId().equals(userId)) {
+            boolean alreadyPurchased = userMaterialRepository.existsByUserAndMaterial(user, material);
+            if (!alreadyPurchased) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "구매하지 않은 자료입니다.");
+            }
+        }
+
         // --- ▼▼▼ 2. '구매 내역 저장' 로직 수정/추가 ▼▼▼ ---
         String storedPath = attachment.getStoredFilePath();
         String fileDirPrefix = "/data/uploads";
@@ -286,41 +341,10 @@ public class MaterialService {
         Path filePath = Paths.get(storedPath);
 
         if (!Files.exists(filePath) || !Files.isReadable(filePath)) {
-            // 500 에러 대신 404를 반환하도록 변경 (IOException 대신)
             throw new ResponseStatusException(HttpStatus.NOT_FOUND,
                     "파일이 서버에서 삭제되었거나 찾을 수 없습니다: " + attachment.getOriginalFileName());
         }
 
-        if (!material.getUser().getId().equals(userId)) { // 본인 자료가 아니라면
-
-            // 중복 구매 확인
-            boolean alreadyPurchased = userMaterialRepository.existsByUserAndMaterial(user, material);
-            if (!alreadyPurchased) { // 구매 내역이 없다면
-
-                int currentPoints = pointService.getUserPoints(user.getEmail());
-
-                if (currentPoints < DOWNLOAD_COST) {
-                    throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                            "포인트 잔액이 부족합니다. (현재 잔액: " + currentPoints + ", 필요 포인트: " + DOWNLOAD_COST + ")");
-                }
-
-                // 포인트 차감
-                pointService.updatePoints(
-                        user.getEmail(),
-                        DOWNLOAD_COST, // (임시) 200 포인트
-                        "자료 다운로드: " + material.getTitle(),
-                        PointHistory.PointType.USE
-                );
-                UserMaterial purchaseRecord = new UserMaterial();
-                purchaseRecord.setUser(user);
-                purchaseRecord.setMaterial(material);
-                userMaterialRepository.save(purchaseRecord);
-
-            }
-        }
-        // --- ▲▲▲ 여기까지 수정/추가 ▲▲▲ ---
-
-        // Path로 Resource 생성하기
         Resource resource = new UrlResource(filePath.toUri());
 
         if (!resource.exists() || !resource.isReadable()) {

@@ -187,18 +187,54 @@ public class MaterialController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/{materialId}/attachments/{attachmentId}/purchase")
+    @Operation(
+            summary = "자료 구매",
+            description = "자료를 구매합니다. 본인이 업로드한 자료인 경우 포인트가 차감되지 않습니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "구매 성공"),
+            @ApiResponse(responseCode = "400", description = "포인트 부족 (200P 필요)"),
+            @ApiResponse(responseCode = "404", description = "자료 또는 파일을 찾을 수 없음"),
+            @ApiResponse(responseCode = "409", description = "이미 구매한 자료입니다.")
+    })
+    public ResponseEntity<?> purchaseMaterial(
+            @PathVariable Long materialId,
+            @PathVariable Long attachmentId,
+            @AuthenticationPrincipal OAuth2User principal
+    ) {
+        if (principal == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "인증이 필요합니다.");
+        }
+
+        String email = principal.getAttribute("email");
+        Long userId = userService.findByEmail(email.toLowerCase())
+                .map(User::getId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED, "등록되지 않은 사용자입니다."));
+
+        try {
+            materialService.purchaseMaterial(materialId, attachmentId, userId);
+            return ResponseEntity.ok(Map.of("message", "구매가 완료되었습니다."));
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+        } catch (ResponseStatusException e) {
+            // 400 / 409 등 그대로 전달
+            throw e;
+        }
+    }
+
 
     // ▼▼▼ '옥민희'님 파트 - '자료 구매' API (수정됨) ▼▼▼
     @GetMapping("/{materialId}/download/{attachmentId}") // <-- attachmentId 추가
     @Operation(
-            summary = "자료 파일 다운로드 (자료 구매)",
-            description = "자료를 다운로드합니다. 본인이 업로드한 자료가 아닌 경우 200 포인트가 차감됩니다."
+            summary = "자료 파일 다운로드",
+            description = "이미 구매한 자료이거나 본인이 업로드한 자료를 다운로드합니다. 다운로드 시 포인트는 차감되지 않습니다."
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "다운로드 성공"),
-            @ApiResponse(responseCode = "400", description = "포인트 부족 (200P 필요)"),
-            @ApiResponse(responseCode = "404", description = "파일을 찾을 수 없음"),
-            @ApiResponse(responseCode = "409", description = "이미 구매한 자료입니다. (이젠 발생 안 함)")
+            @ApiResponse(responseCode = "403", description = "구매하지 않은 자료입니다."),
+            @ApiResponse(responseCode = "404", description = "파일을 찾을 수 없음")
     })
     public ResponseEntity<?> downloadMaterial( // ResponseEntity<Resource> -> ResponseEntity<?>
             @Parameter(description = "자료 ID", required = true)
@@ -235,7 +271,7 @@ public class MaterialController {
                     
         } catch (NotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
-        } catch (IllegalArgumentException e) { // 포인트 부족 또는 파일 ID 오류
+        } catch (IllegalArgumentException e) { // 잘못된 요청(자료-첨부파일 매칭 오류 등)
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         }
     }
